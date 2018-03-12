@@ -1,6 +1,5 @@
 lib <- c("shiny","shinythemes","DT")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-setwd("C:/Users/Ke/OneDrive/Development/Shiny/ShiyTraderPortal")
 source("utility.R")
 
 #
@@ -33,14 +32,14 @@ ui <- fluidPage(theme = shinytheme("united"),
           border-radius: 1px;
           padding: 0px 0px;
           margin: 1px 0px;
-          height: 350px;
+          height: 400px;
         }
         .nano_block {
           border: 1px solid #ccc;
           border-radius: 1px;
           padding: 0px 0px;
           margin: 1px 0px;
-          height: 198px;
+          height: 148px;
         }
         .blotter_fields {
           padding: 0px 5px;
@@ -230,7 +229,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
                                       ),
                                       tags$div(style="float:right; padding:0px, margin:0px, height:100%",
-                                               textInput("ticker_search", NULL, value = "", width = blotter_field_default_width, placeholder = "i.e. AAPL-USD")
+                                               textInput("ticker_search", NULL, value = "", width = blotter_field_default_width, placeholder = "AAPL-USD")
                                       ),
                                       tags$div(style="padding:0px, margin:0px, height:100%",
                                                textOutput("prev_day_quote")),

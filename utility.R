@@ -17,7 +17,8 @@ max_message_count <- 5
 # Load trading class
 #
 onedrive.dir <- "C:/Users/KE/OneDrive/"
-cls.rpo.dir <- paste(onedrive.dir, "Development/R/Repository/Class/", sep="")
+cls.rpo.dir <- paste0(onedrive.dir, "Development/R/Repository/Class/")
+shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
 setwd(cls.rpo.dir)
 
 #
@@ -118,7 +119,7 @@ UtilTradeWithIB <- function(blotter){
 		# Run a loop to check if the trade is sucessful
 		#
 		flag <- 0
-		while(i <= 5){
+		while(i <= 3){
 			actual_after_holding <- UtilFindCurrentHolding(tik_with_crcy)
 			ifelse(actual_after_holding == expected_after_holding, flag <- 1, flag <- 0)
 			
@@ -328,3 +329,8 @@ UtilGetStockLastestPrice <- function(ticker_w_crncy){
   
   return(lprc_final)
 }
+
+#
+# Set shiny directory
+#
+setwd(shiny.dir)

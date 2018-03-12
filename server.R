@@ -1,6 +1,5 @@
 lib <- c("shiny","DT","ggplot2")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-setwd("C:/Users/Ke/OneDrive/Development/Shiny/ShiyTraderPortal")
 source("utility.R")
 
 #
@@ -111,7 +110,7 @@ server <- function(input, output, session) {
       output[[paste0('trade_item',i)]] <- renderUI({
         list(
           br(),
-          tags$div(class = "blotter_fields", textInput(paste0('ticker',i), NULL, value = "", width = blotter_field_default_width, placeholder = "i.e. AAPL-USD")),
+          tags$div(class = "blotter_fields", textInput(paste0('ticker',i), NULL, value = "", width = blotter_field_default_width, placeholder = "AAPL")),
           tags$div(class = "blotter_fields", selectInput(paste0('currency',i), NULL, choices = c("CAD","USD"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", selectInput(paste0('side',i), NULL, choices = c("Buy", "Sell"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('shares',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
@@ -132,7 +131,7 @@ server <- function(input, output, session) {
   lapply(1:max_blotter_size, function(i){
     observeEvent(input[[paste0("trade",i)]],{
 
-	  blotter <- data.frame(LocalTicker = input[[paste0('ticker',i)]],
+	    blotter <- data.frame(LocalTicker = input[[paste0('ticker',i)]],
 							Action = input[[paste0('side',i)]],
 							Quantity = input[[paste0('shares',i)]],
 							OrderType = input[[paste0('type',i)]],
@@ -142,18 +141,18 @@ server <- function(input, output, session) {
 							TradeSwitch = input[[paste0('transmit',i)]],
 							stringsAsFactors = FALSE)
 	  
-	  res <- UtilTradeWithIB(blotter)
+	    res <- UtilTradeWithIB(blotter)
       msg <- res$msg_rec
       trd <- res$trade_rec
 	  
-	  load("history.RData")
-	  messages <- rbind(messages, msg)
-	  trades <- rbind(trades, trd)
-	  save(messages, trades, file="history.RData")
+	    load("history.RData")
+	    messages <- rbind(messages, msg)
+	    trades <- rbind(trades, trd)
+	    save(messages, trades, file="history.RData")
 	  
       msg_id <- message_count_trader %% max_message_count
       output[[paste0('message', msg_id)]] <- renderText({
-        msg
+        msg$Msg
       })
       message_count_trader <<- message_count_trader + 1 
     })

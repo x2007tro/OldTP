@@ -115,7 +115,7 @@ server <- function(input, output, session) {
           tags$div(class = "blotter_fields", selectInput(paste0('currency',i), NULL, choices = c("CAD","USD"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", selectInput(paste0('side',i), NULL, choices = c("Buy", "Sell"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('shares',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
-          tags$div(class = "blotter_fields", selectInput(paste0('type',i), NULL, choices = c("Market", "Limit"), width = blotter_field_default_width)),
+          tags$div(class = "blotter_fields", selectInput(paste0('type',i), NULL, choices = c("Lmt", "Mkt"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('limit_price',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('trade_value',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',i), NULL, value = FALSE, width = blotter_field_default_width)),
@@ -135,12 +135,12 @@ server <- function(input, output, session) {
 	  blotter <- data.frame(LocalTicker = input[[paste0('ticker',i)]],
 							Action = input[[paste0('side',i)]],
 							Quantity = input[[paste0('shares',i)]],
-							OrderType = input[[paste0('type',i)],
+							OrderType = input[[paste0('type',i)]],
 							LimitPrice = input[[paste0('limit_price',i)]],
 							SecurityType = "Stk",
 							Currency = input[[paste0('currency',i)]],
 							TradeSwitch = input[[paste0('transmit',i)]],
-							StringsAsFactors = FALSE)
+							stringsAsFactors = FALSE)
 	  
 	  res <- UtilTradeWithIB(blotter)
       msg <- res$msg_rec

@@ -32,19 +32,19 @@ ui <- fluidPage(theme = shinytheme("united"),
           border-radius: 1px;
           padding: 0px 0px;
           margin: 1px 0px;
-          height: 400px;
+          height: 450px;
         }
         .nano_block {
           border: 1px solid #ccc;
           border-radius: 1px;
           padding: 0px 0px;
           margin: 1px 0px;
-          height: 148px;
+          height: 98px;
         }
         .blotter_fields {
           padding: 0px 5px;
           margin: 0px 5px;
-          width: 90px;
+          width: 80px;
           float: left;
         }
         .blotter_fields_right {
@@ -52,36 +52,6 @@ ui <- fluidPage(theme = shinytheme("united"),
           margin: 0px 5px;
           width: 90px;
           float: right;
-        }
-        #ticker1, #currency1, #side1, #shares1, #type1, #limit_price1, 
-        #trade_value1, #transmit1, #trade1 {
-          padding: 1px 5px;
-          margin: 0px 0px;
-          height: 100%;
-        }
-        #ticker02, #currency02, #side02, #shares02, #type02, #limit_price02, 
-        #trade_value02, #transmit02, #trade02 {
-          padding: 1px 5px;
-          margin: 0px 0px;
-          height: 100%;
-        }
-        #ticker03, #currency03, #side03, #shares03, #type03, #limit_price03, 
-        #trade_value03, #transmit03, #trade03 {
-          padding: 1px 5px;
-          margin: 0px 0px;
-          height: 100%;
-        }
-        #ticker04, #currency04, #side04, #shares04, #type04, #limit_price04, 
-        #trade_value04, #transmit04, #trade04 {
-          padding: 1px 5px;
-          margin: 0px 0px;
-          height: 100%;
-        }
-        #ticker05, #currency05, #side05, #shares05, #type05, #limit_price05, 
-        #trade_value05, #transmit05, #trade05 {
-          padding: 1px 5px;
-          margin: 0px 0px;
-          height: 100%;
         }
         #ticker_search, #ticker_search_submit, #ticker_news, #ticker_news_submit,
         #eq_perf_period, #eq_perf_period_submit, #tb_perf_period, #tb_perf_period_submit, 
@@ -92,9 +62,6 @@ ui <- fluidPage(theme = shinytheme("united"),
         }
         #portfolio_dt{
           /*background-color: #000000;*/
-        }
-        .trade_item1, .trade_item2{
-          diplay:block;
         }
       "))
   ),
@@ -132,27 +99,32 @@ ui <- fluidPage(theme = shinytheme("united"),
                         # Blotter Column
                         column(12,id = "blotter",
                                tags$div(class = "micro_block",
-                                        tags$h4("Blotter", style="float:left"),
-                                        tags$div(id = "blotter_size_div", style="float:right",
-                                                 selectInput("blotter_size_selector", NULL, choices = 1:10, width = blotter_field_default_width)
-                                        ),
-                                        tags$table(id = "blotter_table",
-                                                     tags$div(class = "blotter_fields", "Ticker"),
-                                                     tags$div(class = "blotter_fields", "Currency"),
-                                                     tags$div(class = "blotter_fields", "Side"),
-                                                     tags$div(class = "blotter_fields", "Shares"),
-                                                     tags$div(class = "blotter_fields", "Type"),
-                                                     tags$div(class = "blotter_fields", "Limit Price"),
-                                                     tags$div(class = "blotter_fields", "Trade Value"),
-                                                     tags$div(class = "blotter_fields", "Transmit"),
-                                                     tags$div(class = "blotter_fields", "Trade"),
-                                                     br(),
-
-                                                   lapply(1:max_blotter_size, function(i){
-                                                     tags$div(style="display:block", uiOutput(paste0('trade_item', i), inline = FALSE, style="display:block"))
-                                                   })
-                                        ),
-                                        tags$br()
+                                        fluidRow(      column(12,
+                                            tags$h4("Blotter", style="float:left"),
+                                            tags$div(id = "blotter_size_div", style="float:right",
+                                                     selectInput("blotter_size_selector", NULL, choices = 1:10, width = blotter_field_default_width)
+                                            )
+                                        )),
+                                        fluidRow(column(12,
+                                                 tags$div(style="display:block",
+                                                          tags$div(class = "blotter_fields", "Ticker"),
+                                                          tags$div(class = "blotter_fields", "Currency"),
+                                                          tags$div(class = "blotter_fields", "Side"),
+                                                          tags$div(class = "blotter_fields", "Shares"),
+                                                          tags$div(class = "blotter_fields", "Type"),
+                                                          tags$div(class = "blotter_fields", "Limit Price"),
+                                                          tags$div(class = "blotter_fields", "Trade Value"),
+                                                          tags$div(class = "blotter_fields", "Transmit"),
+                                                          tags$div(class = "blotter_fields", "Trade"),
+                                                          br(),
+                                                          
+                                                          lapply(1:max_blotter_size, function(i){
+                                                            fluidRow(column(12,
+                                                                            tags$div(style="display:block", uiOutput(paste0('trade_item', i), inline = FALSE))
+                                                            ))
+                                                          })
+                                                 ) 
+                                        ))
                                )
                         )
                         # End
@@ -224,18 +196,21 @@ ui <- fluidPage(theme = shinytheme("united"),
                       # Watchlist Column
                       column(12, id = "watchlist", style = "padding:0px 1px 0px 1px",
                              tags$div(class = "macro_block",
-                                      tags$h4("Watchlist", style="float:left"),
-                                      tags$div(style="float:right; padding:0px, margin:0px, height:100%",
-                                               actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
-                                      ),
-                                      tags$div(style="float:right; padding:0px, margin:0px, height:100%",
-                                               textInput("ticker_search", NULL, value = "", width = blotter_field_default_width, placeholder = "AAPL-USD")
-                                      ),
-                                      tags$div(style="padding:0px, margin:0px, height:100%",
-                                               textOutput("prev_day_quote")),
-                                      tags$div(style="padding:0px, margin:0px, height:100%",
-                                               plotOutput("hist_return"))
-                                      
+                                      fluidRow(column(12,
+                                                      tags$h4("Watchlist", style="float:left"),
+                                                      tags$div(style="float:right; padding:0px, margin:0px, height:100%",
+                                                               actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
+                                                      ),
+                                                      tags$div(style="float:right; padding:0px, margin:0px, height:100%",
+                                                               textInput("ticker_search", NULL, value = "", width = blotter_field_default_width, placeholder = "AAPL-USD")
+                                                      )
+                                      )),
+                                      fluidRow(column(12,
+                                                      tags$div(style="padding:0px, margin:0px, height:100%",
+                                                               textOutput("prev_day_quote")),
+                                                      tags$div(style="padding:0px, margin:0px, height:100%",
+                                                               plotOutput("hist_return"))
+                                      ))
                              )
                       )
                       # End     

@@ -286,10 +286,10 @@ UtilPlotMarketReturn <- function(master_plot_data, market, period){
                                     Value = plot_data_prelim_mtx,
                                     stringsAsFactors = FALSE)
   colnames(plot_data_prelim_df) <- c("Period",colnames(plot_data_prelim))
-  plot_data_final <- tidyr::gather(plot_data_prelim_df, ETF, CumRet, -Period)
+  plot_data_final <- tidyr::gather(plot_data_prelim_df, Security, CumRet, -Period)
   
   YearMonthDay <- function(x) format(x, "%Y-%m-%d")
-  my_plot <- ggplot(plot_data_final, aes(x = Period, y = CumRet, color = ETF)) +
+  my_plot <- ggplot(plot_data_final, aes(x = Period, y = CumRet, color = Security)) +
     geom_point() + 
     geom_line() +
     #scale_x_date(date_breaks = "1 day", labels = YearMonthDay) +

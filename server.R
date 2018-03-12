@@ -119,7 +119,6 @@ server <- function(input, output, session) {
           tags$div(class = "blotter_fields", numericInput(paste0('trade_value',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',i), NULL, value = FALSE, width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", actionButton(paste0('trade',i), "Trade", width = blotter_field_default_width))
-          #br()
         )
       })
     })

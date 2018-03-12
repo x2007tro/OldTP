@@ -73,7 +73,7 @@ UtilGetPortfolio <- function(){
 # Find current holding
 #
 UtilFindCurrentHolding <- function(ticker_with_current){
-  port <- UtilGetPortfolio()
+  port <- UtilGetPortfolio()$port
   holding <- port[port$Ticker == ticker_with_current,]
   
   if(nrow(holding) == 0){
@@ -87,8 +87,8 @@ UtilFindCurrentHolding <- function(ticker_with_current){
 # Trade functions
 #
 UtilTradeWithIB <- function(blotter){
-	for(i in 1:nrow()){
-		tik_with_crcy <- paste0(blotter[i,"LocalTicker"], blotter[i,"Currency"])
+	for(i in 1:nrow(blotter)){
+		tik_with_crcy <- paste0(blotter[i,"LocalTicker"], "-", blotter[i,"Currency"])
 		side <- blotter[i,"Action"]
 		trade_shares <- blotter[i,"Quantity"]
 		transmit <- blotter[i,"TradeSwitch"]
@@ -135,7 +135,7 @@ UtilTradeWithIB <- function(blotter){
 		#
 		trade_res <- blotter
 		trade_date <- format(Sys.Date(), "%Y-%m-%d")
-		trade_time <- format(Sys.Time(), "%H:%M:%S")
+		trade_time <- format(Sys.time(), "%H:%M:%S")
 		if(flag == 1){
 			trade_res$Date <- trade_date
 			trade_res$Time <- trade_time
@@ -156,9 +156,20 @@ UtilTradeWithIB <- function(blotter){
 							  stringsAsFactors = FALSE)
 		}
 	
-		return(list(trade_rec = trade_res, msg_rec = msg))
 	}
+  return(list(trade_rec = trade_res, msg_rec = msg))
 }
+
+# blotter <- data.frame(LocalTicker = "SPY",
+#                       Action = "Buy",
+#                       Quantity = 1,
+#                       OrderType = "Mkt",
+#                       LimitPrice = 0,
+#                       SecurityType = "Stk",
+#                       Currency = "USD",
+#                       TradeSwitch = FALSE,
+#                       stringsAsFactors = FALSE)
+# res <- UtilTradeWithIB(blotter)
 
 #
 # Download etf historical price and calculate return

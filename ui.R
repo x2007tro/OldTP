@@ -1,6 +1,6 @@
 lib <- c("shiny","shinythemes","DT")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-setwd("C:/Users/ke/OneDrive/Development/Shiny/Practice 1/")
+setwd("C:/Users/Ke/OneDrive/Development/Shiny/ShiyTraderPortal")
 source("utility.R")
 
 #

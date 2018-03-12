@@ -1,6 +1,6 @@
 lib <- c("shiny","DT","ggplot2")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-setwd("C:/Users/KE/OneDrive/Development/Shiny/Practice 1/")
+setwd("C:/Users/Ke/OneDrive/Development/Shiny/ShiyTraderPortal")
 source("utility.R")
 
 #
@@ -63,7 +63,7 @@ server <- function(input, output, session) {
         tags$div(class = "blotter_fields", selectInput(paste0('currency',blotter_size_tracker), NULL, choices = c("CAD","USD"), selected = currency, width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", selectInput(paste0('side',blotter_size_tracker), NULL, choices = c("Buy", "Sell"), selected = "Sell", width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", numericInput(paste0('shares',blotter_size_tracker), NULL, value = position, min = 0, max = 1000,  width = blotter_field_default_width)),
-        tags$div(class = "blotter_fields", selectInput(paste0('type',blotter_size_tracker), NULL, choices = c("Market", "Limit"), width = blotter_field_default_width)),
+        tags$div(class = "blotter_fields", selectInput(paste0('type',blotter_size_tracker), NULL, choices = c("Lmt", "Mkt"), width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", numericInput(paste0('limit_price',blotter_size_tracker), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", numericInput(paste0('trade_value',blotter_size_tracker), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',blotter_size_tracker), NULL, value = TRUE, width = blotter_field_default_width)),

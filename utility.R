@@ -5,20 +5,30 @@ lapply(lib, function(x){library(x, character.only = TRUE)})
 # Common parameters for server and ui
 #
 blotter_field_default_width <- "90px"
-max_blotter_size <- 100
+max_blotter_size <- 5
 max_message_count <- 3
 
 #
-# Load trading class
+# Load trading class depending on OS
 #
-onedrive.dir <- "C:/Users/KE/OneDrive/"
-cls.rpo.dir <- paste0(onedrive.dir, "Development/R/Repository/Class/")
-shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
-setwd(cls.rpo.dir)
+if(R.Version()$os == "linux-gnu"){
+  onedrive.dir <- "/home/kmin/"
+  cls.rpo.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
+  shiny.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/")
+  watchlist.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
+  ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
+} else {
+  onedrive.dir <- "C:/Users/KE/OneDrive/"
+  cls.rpo.dir <- paste0(onedrive.dir, "Development/R/Repository/Class/")
+  shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
+  watchlist.dir <- paste0(onedrive.dir, "Investment/Research/Economic Indicators/")
+  ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
+}
 
 #
 # Load portfolio status function
 #
+setwd(cls.rpo.dir)
 source("IB_TWS_TradingSession.R")
 source("FinancialSecurityHistoricalData.R")
 source("EconomicIndicators.R")
@@ -26,6 +36,11 @@ source("EconomicIndicators.R")
 ##
 # Utility functions for shiny trading portal
 ##
+
+#
+# Set shiny directory
+#
+setwd(shiny.dir)
 
 #
 # Get portfolio data
@@ -186,9 +201,6 @@ UtilGetMarketReturn <- function(){
   #
   start.date <- as.Date("2013-01-01") 
   end.date <- Sys.Date()
-  invt.dir <- paste0(onedrive.dir, "Investment/")
-  ws.fn <- paste(invt.dir,"Research/Economic Indicators/",
-                 "Watchlist.xlsx",sep="")
   watchlist <- read_excel(ws.fn, sheet="Watchlist")
   watchlist <- na.omit(watchlist)
   ei.etf.keys <- paste("$", watchlist$LocalTicker, sep="")
@@ -301,6 +313,7 @@ UtilPlotMarketReturn <- function(master_plot_data, market, period){
     theme(rect = element_rect(fill = "#C0C0C0"),
           panel.background = element_rect(fill = "#C0C0C0"),
           legend.key = element_rect(fill = "#C0C0C0"),
+          legend.position = "top",
           text = element_text(color = "#000000"),
           axis.text = element_text(color = "#000000"),
           axis.ticks = element_line(color = "#000000"),
@@ -308,8 +321,7 @@ UtilPlotMarketReturn <- function(master_plot_data, market, period){
   
   return(my_plot)
 }
-x <- UtilGetStockHistReturn("SPY-USD")
-y <- UtilPlotMarketReturn(x, "HAHAHA", "1Y")
+
 #
 # Get lastest quote
 #
@@ -332,8 +344,3 @@ UtilGetStockLastestPrice <- function(ticker_w_crncy){
   
   return(lprc_final)
 }
-
-#
-# Set shiny directory
-#
-setwd(shiny.dir)

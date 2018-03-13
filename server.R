@@ -65,7 +65,7 @@ server <- function(input, output, session) {
         tags$div(class = "blotter_fields", selectInput(paste0('type',blotter_size_tracker), NULL, choices = c("Lmt", "Mkt"), width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", numericInput(paste0('limit_price',blotter_size_tracker), NULL, value = 1, min = 0, max = 1000, width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", textInput(paste0('trade_value',blotter_size_tracker), NULL, value = "0", width = blotter_field_default_width)),
-        tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',blotter_size_tracker), NULL, value = TRUE, width = blotter_field_default_width)),
+        tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',blotter_size_tracker), NULL, value = FALSE, width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", actionButton(paste0('trade',blotter_size_tracker), "Trade", width = blotter_field_default_width))
         #br()
       )
@@ -161,7 +161,9 @@ server <- function(input, output, session) {
 	    trades <- rbind(trades, trd)
 	    save(messages, trades, file="history.RData")
 	  
-      msg_id <- message_count_trader %% max_message_count
+      ifelse(message_count_trader %% max_message_count == 0, 
+             msg_id <- max_message_count,
+             msg_id <- message_count_trader %% max_message_count)
       output[[paste0('message', msg_id)]] <- renderText({
         msg$Msg
       })
@@ -203,8 +205,8 @@ server <- function(input, output, session) {
   output$past_messages <- DT::renderDataTable({
     load("history.RData")
     DT::datatable(messages, options = list(pageLength = 10,
-                                         orderClasses = TRUE,
-                                         searching = TRUE,
-                                         paging = TRUE))
+                                           orderClasses = TRUE,
+                                           searching = TRUE,
+                                           paging = TRUE))
   })
 }

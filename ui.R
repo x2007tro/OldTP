@@ -3,9 +3,21 @@ lapply(lib, function(x){library(x, character.only = TRUE)})
 source("utility.R")
 
 #
+# UI Layout (Trader Portal)
+#
+# |     portfolio (macro_block)    |   Blotter (micro_block)   |        
+#                                  |   Message (nano_block)   |
+#      
+# |     Market (macro_block)       |   Watchlist (macro_block)   |
+# 
+#
+#
+#
+
+#
 # Shiny ui
 #
-ui <- fluidPage(theme = shinytheme("united"),
+ui <- fluidPage(theme = shinytheme("lumen"),
   
   # Some custom CSS, testing something, 12
   tags$head(
@@ -32,14 +44,14 @@ ui <- fluidPage(theme = shinytheme("united"),
           border-radius: 1px;
           padding: 0px 0px;
           margin: 1px 0px;
-          height: 450px;
+          height: 440px;
         }
         .nano_block {
           border: 1px solid #ccc;
           border-radius: 1px;
           padding: 0px 0px;
           margin: 1px 0px;
-          height: 98px;
+          height: 108px;
         }
         .blotter_fields {
           padding: 0px 5px;
@@ -62,6 +74,9 @@ ui <- fluidPage(theme = shinytheme("united"),
         }
         #portfolio_dt{
           /*background-color: #000000;*/
+        }
+        .add_trade_list, .add_trade_list_submit{
+          width:200px;
         }
       "))
   ),
@@ -202,12 +217,14 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                                actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
                                                       ),
                                                       tags$div(style="float:right; padding:0px, margin:0px, height:100%",
-                                                               textInput("ticker_search", NULL, value = "", width = blotter_field_default_width, placeholder = "AAPL-USD")
+                                                               textInput("ticker_search", NULL, value = "AAPL-USD", width = blotter_field_default_width)
                                                       )
                                       )),
                                       fluidRow(column(12,
+                                                      tags$h5("Latest information"),
                                                       tags$div(style="padding:0px, margin:0px, height:100%",
-                                                               textOutput("prev_day_quote")),
+                                                               textOutput("prev_day_quote")), br(),
+                                                      tags$h5("Historical Performance (1 Year)"),
                                                       tags$div(style="padding:0px, margin:0px, height:100%",
                                                                plotOutput("hist_return"))
                                       ))
@@ -218,6 +235,28 @@ ui <- fluidPage(theme = shinytheme("united"),
                ) # End of column
              ) # End of fluidrow
     ), # End of trader portal tab
+    tabPanel("Trade History",
+             fluidRow(
+               column(12,
+                      fluidRow(
+                        tags$h4(tags$b("Past Trades"))
+                      ),
+                      fluidRow(
+                        DT::dataTableOutput("past_trades")
+                      )
+               )
+             ),
+             fluidRow(
+               column(12,
+                      fluidRow(
+                        tags$h4(tags$b("Past Messages"))    
+                      ),
+                      fluidRow(
+                        DT::dataTableOutput("past_messages")     
+                      )
+               )
+             )
+    ),
     tabPanel("Market News",
         # News column
         fluidRow(
@@ -235,7 +274,6 @@ ui <- fluidPage(theme = shinytheme("united"),
         ) # End
     ),
     tabPanel("Economic Indicators",
-      tags$h4("Here are the instructions!"),
       # Economic indicators column
       fluidRow(
         column(12, id = "ei",
@@ -260,33 +298,11 @@ ui <- fluidPage(theme = shinytheme("united"),
       )
       # End
     ),
-    tabPanel("History",
-             fluidRow(
-               column(12,
-                 fluidRow(
-                   tags$h4(tags$b("Past Trades"))
-                 ),
-                 fluidRow(
-                   DT::dataTableOutput("past_trades")
-                 )
-               )
-             ),
-             fluidRow(
-               column(12,
-                      fluidRow(
-                        tags$h4(tags$b("Past Messages"))    
-                      ),
-                      fluidRow(
-                        DT::dataTableOutput("past_messages")     
-                      )
-               )
-             )
-    ),
     tabPanel("Instructions",
              tags$h4("Here are the instructions!")
              
     ),
-    tabPanel("Future Development",
+    tabPanel("Development",
              tags$h5("Future features under development:"),
              tags$ul(
                tags$li("Add economic indicators"),
@@ -296,7 +312,13 @@ ui <- fluidPage(theme = shinytheme("united"),
                tags$li("Add news search function"),
                tags$li("Add historical trade/messages"),
                tags$li("Clean up and reorganize UI"),
-               tags$li("Add error handling in Server")
+               tags$li("Add error handling in Server"),
+               tags$li("Parameterize more items")
+             ),
+             br(), br(),
+             tags$h5("Features developed"),
+             tags$ul(
+               tags$li("Add historical trade/messages")
              )
     )
   )

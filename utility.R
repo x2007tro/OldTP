@@ -6,12 +6,7 @@ lapply(lib, function(x){library(x, character.only = TRUE)})
 #
 blotter_field_default_width <- "90px"
 max_blotter_size <- 100
-max_message_count <- 5
-
-
-#
-# Utility functions for shiny trading portal
-#
+max_message_count <- 3
 
 #
 # Load trading class
@@ -25,6 +20,16 @@ setwd(cls.rpo.dir)
 # Load portfolio status function
 #
 source("IB_TWS_TradingSession.R")
+source("FinancialSecurityHistoricalData.R")
+source("EconomicIndicators.R")
+
+##
+# Utility functions for shiny trading portal
+##
+
+#
+# Get portfolio data
+# 
 UtilGetPortfolio <- function(){
   ts1 <- TradingSession(1, "TWS")
   ts1 <- TSSetTransmit(ts1, FALSE)     #Prevert trade from actually happening
@@ -175,8 +180,6 @@ UtilTradeWithIB <- function(blotter){
 #
 # Download etf historical price and calculate return
 #
-source("FinancialSecurityHistoricalData.R")
-source("EconomicIndicators.R")
 UtilGetMarketReturn <- function(){
   #
   # Setup

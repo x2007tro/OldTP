@@ -63,8 +63,8 @@ server <- function(input, output, session) {
         tags$div(class = "blotter_fields", selectInput(paste0('side',blotter_size_tracker), NULL, choices = c("Buy", "Sell"), selected = "Sell", width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", numericInput(paste0('shares',blotter_size_tracker), NULL, value = position, min = 0, max = 1000,  width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", selectInput(paste0('type',blotter_size_tracker), NULL, choices = c("Lmt", "Mkt"), width = blotter_field_default_width)),
-        tags$div(class = "blotter_fields", numericInput(paste0('limit_price',blotter_size_tracker), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
-        tags$div(class = "blotter_fields", numericInput(paste0('trade_value',blotter_size_tracker), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
+        tags$div(class = "blotter_fields", numericInput(paste0('limit_price',blotter_size_tracker), NULL, value = 1, min = 0, max = 1000, width = blotter_field_default_width)),
+        tags$div(class = "blotter_fields", textInput(paste0('trade_value',blotter_size_tracker), NULL, value = "0", width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',blotter_size_tracker), NULL, value = TRUE, width = blotter_field_default_width)),
         tags$div(class = "blotter_fields", actionButton(paste0('trade',blotter_size_tracker), "Trade", width = blotter_field_default_width))
         #br()
@@ -116,7 +116,7 @@ server <- function(input, output, session) {
           tags$div(class = "blotter_fields", numericInput(paste0('shares',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", selectInput(paste0('type',i), NULL, choices = c("Lmt", "Mkt"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('limit_price',i), NULL, value = 1, min = 0, max = 1000,  width = blotter_field_default_width)),
-          tags$div(class = "blotter_fields", numericInput(paste0('trade_value',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
+          tags$div(class = "blotter_fields", textInput(paste0('trade_value',i), NULL, value = "0", width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',i), NULL, value = FALSE, width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", actionButton(paste0('trade',i), "Trade", width = blotter_field_default_width))
         )
@@ -127,7 +127,7 @@ server <- function(input, output, session) {
   #
   # Automatically calculate trade_value
   #
-  lapply(1:blotter_size_tracker, function(i){
+  lapply(1:max_blotter_size, function(i){
     observeEvent({ 
       input[[paste0('shares',i)]]
       input[[paste0('limit_price',i)]]

@@ -7,7 +7,7 @@ source("utility.R")
 #
 ui <- fluidPage(theme = shinytheme("united"),
   
-  # Some custom CSS, testing something, 1
+  # Some custom CSS, testing something, 12
   tags$head(
     tags$style(HTML("
         /* Smaller font for preformatted text */

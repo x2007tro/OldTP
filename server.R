@@ -115,12 +115,24 @@ server <- function(input, output, session) {
           tags$div(class = "blotter_fields", selectInput(paste0('side',i), NULL, choices = c("Buy", "Sell"), width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('shares',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", selectInput(paste0('type',i), NULL, choices = c("Lmt", "Mkt"), width = blotter_field_default_width)),
-          tags$div(class = "blotter_fields", numericInput(paste0('limit_price',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
+          tags$div(class = "blotter_fields", numericInput(paste0('limit_price',i), NULL, value = 1, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", numericInput(paste0('trade_value',i), NULL, value = 0, min = 0, max = 1000,  width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", checkboxInput(paste0('transmit',i), NULL, value = FALSE, width = blotter_field_default_width)),
           tags$div(class = "blotter_fields", actionButton(paste0('trade',i), "Trade", width = blotter_field_default_width))
         )
       })
+    })
+  })
+  
+  #
+  # Automatically calculate trade_value
+  #
+  lapply(1:blotter_size_tracker, function(i){
+    observeEvent({ 
+      input[[paste0('shares',i)]]
+      input[[paste0('limit_price',i)]]
+    }, {
+      updateNumericInput(session, paste0('trade_value',i), value=input[[paste0('shares',i)]]*input[[paste0('limit_price',i)]])
     })
   })
   
@@ -174,4 +186,25 @@ server <- function(input, output, session) {
     })
   })
   
+  #
+  # handling past trades
+  #
+  output$past_trades <- DT::renderDataTable({
+    load("history.RData")
+    DT::datatable(trades, options = list(pageLength = 20,
+                                         orderClasses = TRUE,
+                                         searching = TRUE,
+                                         paging = TRUE))
+  })
+  
+  #
+  # handling past messages
+  #
+  output$past_messages <- DT::renderDataTable({
+    load("history.RData")
+    DT::datatable(messages, options = list(pageLength = 20,
+                                         orderClasses = TRUE,
+                                         searching = TRUE,
+                                         paging = TRUE))
+  })
 }

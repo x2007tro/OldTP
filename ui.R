@@ -239,10 +239,7 @@ ui <- fluidPage(theme = shinytheme("united"),
       # Economic indicators column
       fluidRow(
         column(12, id = "ei",
-               tags$div(#class = "macro_block",
-                        tags$h4("Economic Indicators"),
-                        
-                        tabsetPanel(position = "below",
+               tags$div(tabsetPanel(position = "below",
                                     # Equity curve
                                     tabPanel("Leading"
                                     ),
@@ -257,16 +254,50 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     tabPanel("Lagging"
                                     )
                                     # End
-                        ),
-                        
-                        tags$br()
+                        )
                )      
         )
       )
       # End
     ),
+    tabPanel("History",
+             fluidRow(
+               column(12,
+                 fluidRow(
+                   tags$h4(tags$b("Past Trades"))
+                 ),
+                 fluidRow(
+                   DT::dataTableOutput("past_trades")
+                 )
+               )
+             ),
+             fluidRow(
+               column(12,
+                      fluidRow(
+                        tags$h4(tags$b("Past Messages"))    
+                      ),
+                      fluidRow(
+                        DT::dataTableOutput("past_messages")     
+                      )
+               )
+             )
+    ),
     tabPanel("Instructions",
              tags$h4("Here are the instructions!")
+             
+    ),
+    tabPanel("Future Development",
+             tags$h5("Future features under development:"),
+             tags$ul(
+               tags$li("Add economic indicators"),
+               tags$li("Add instructions"),
+               tags$li("Automatically calculate trade values"),
+               tags$li("Better looking theme"),
+               tags$li("Add news search function"),
+               tags$li("Add historical trade/messages"),
+               tags$li("Clean up and reorganize UI"),
+               tags$li("Add error handling in Server")
+             )
     )
   )
   # End of navbarpage

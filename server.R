@@ -191,7 +191,7 @@ server <- function(input, output, session) {
   #
   output$past_trades <- DT::renderDataTable({
     load("history.RData")
-    DT::datatable(trades, options = list(pageLength = 20,
+    DT::datatable(trades, options = list(pageLength = 10,
                                          orderClasses = TRUE,
                                          searching = TRUE,
                                          paging = TRUE))
@@ -202,7 +202,7 @@ server <- function(input, output, session) {
   #
   output$past_messages <- DT::renderDataTable({
     load("history.RData")
-    DT::datatable(messages, options = list(pageLength = 20,
+    DT::datatable(messages, options = list(pageLength = 10,
                                          orderClasses = TRUE,
                                          searching = TRUE,
                                          paging = TRUE))

@@ -7,6 +7,8 @@ lapply(lib, function(x){library(x, character.only = TRUE)})
 blotter_field_default_width <- "90px"
 max_blotter_size <- 5
 max_message_count <- 3
+econ_indi_panel_default_width <- 12
+econ_indi_tab_names <- c("gei_dt", "lei_dt", "coi_dt", "lai_dt")
 
 #
 # Load trading class depending on OS
@@ -16,14 +18,15 @@ if(R.Version()$os == "linux-gnu"){
   cls.rpo.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
   shiny.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/")
   watchlist.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
-  ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
 } else {
-  onedrive.dir <- "C:/Users/KE/OneDrive/"
+  onedrive.dir <- "C:/Users/KMIN/OneDrive/"
   cls.rpo.dir <- paste0(onedrive.dir, "Development/R/Repository/Class/")
   shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
   watchlist.dir <- paste0(onedrive.dir, "Investment/Research/Economic Indicators/")
-  ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
+  
 }
+ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
+ei.fn <- paste0(shiny.dir, "EconomicIndicatorsDescription.xlsx")
 
 #
 # Load portfolio status function
@@ -343,4 +346,168 @@ UtilGetStockLastestPrice <- function(ticker_w_crncy){
   colnames(lprc_final) <- c("Open", "High", "Low", "Close", "Volume")
   
   return(lprc_final)
+}
+
+#
+# Economic Indicators functions
+#
+UtilGetEconIndicators <- function(){
+  
+  #
+  # Setup run parameters
+  #
+  end.date <- Sys.Date() - days(day(Sys.Date())) + 1
+  mth.seq <- rev(seq(from = end.date, length = 12, by="-1 month")) 
+  start.date <- mth.seq[1]
+  
+  # Fred items
+  dict.keys <- c("kPI",
+                 "kPCE",
+                 "kDPI",
+                 "kMDGNO",
+                 "kNCGeACNO",
+                 "kNCGNO",
+                 "kBP",
+                 "kHS",
+                 "kRFSS",
+                 "kISR4W",
+                 "kGDP",
+                 "kRGDP",
+                 "kCCO",
+                 "kIP",
+                 "kCU",
+                 "kM_2",
+                 "kROS",
+                 "kOER",
+                 "kS",
+                 "kCPI",
+                 "kECI",
+                 "kAW4M",
+                 "kOT4M",
+                 "kTNFP",
+                 "kUR",
+                 "kHPI",
+                 "kCIL",
+                 "kFFR",
+                 "kT10YFF",
+                 "kEHS",
+                 "kSP_500",
+                 "kVIX",
+                 "kCFNAI",
+                 "kIJC",
+                 "kICS",
+                 "kSTLFSI")
+  dict.values <- c("PI",
+                   "PCE",
+                   "DSPI",
+                   "DGORDER",
+                   "NEWORDER",
+                   "ANDENO",
+                   "PERMIT",
+                   "HOUST",
+                   "RSAFS",
+                   "WHLSLRIRSA",
+                   "GDP",
+                   "GDPC96",
+                   "TOTALSL",
+                   "INDPRO",
+                   "TCU",
+                   "M2",
+                   "CUSR0000SAS2RS",
+                   "CUSR0000SEHC01",
+                   "CUSR0000SAS",
+                   "CPIAUCSL",
+                   "ECIALLCIV",
+                   "AWHAEMAN",
+                   "CES3000000004",
+                   "PAYEMS",
+                   "UNRATE",
+                   "USSTHPI",
+                   "BUSLOANS",
+                   "FF",
+                   "T10YFF",
+                   "EXHOSLUSM495N",
+                   "SP500",
+                   "VIXCLS",
+                   "CFNAI",
+                   "ICSA",
+                   "UMCSENT",
+                   "STLFSI")
+  names(dict.values) <- dict.keys
+  
+  # Quandl items
+  qdict.keys <- c("kPMI", "kSD")
+  qdict.values <- c("ISM/MAN_PMI", "ISM/MAN_DELIV")
+  names(qdict.values) <- qdict.keys
+  
+  ###########################################################################
+  ############################# Monthly Data ################################
+  ###########################################################################
+  ei1 <- EconomicIndicators(id = 1, fred_items = dict.values, quandl_items = qdict.values,
+                            hist_startdate = start.date, hist_enddate = end.date)
+  # 
+  # Download economic items
+  ei1 <- EIDownloadAllFredItems(ei1)
+  ei1 <- EIDownloadAllQuandlItems(ei1)
+  
+  # 
+  # Data aggregation for monthly data
+  #
+  ei.mthly <- merge.xts(ei1$EI_fred_data,
+                        ei1$EI_quandl_data,
+                        all= TRUE)
+  
+  #
+  # Format monthly data
+  #
+  res <- lapply(1:length(mth.seq), function(j, mth.seq){
+    
+    bom <- mth.seq[j]
+    yr <- year(bom)
+    mh <- month(bom)
+    
+    if(mh == 12){
+      eom <- as.Date(paste(yr+1, "-", "01", "-01", sep="")) - 1
+    } else {
+      eom <- as.Date(paste(yr, "-", mh+1, "-01", sep="")) - 1
+    }
+    prd <- paste(bom, eom, sep="/")
+    
+    sub.data <- ei.mthly[prd]
+    month.mean <- colMeans(sub.data, na.rm = TRUE)
+    month.mean <- sapply(month.mean, function(x){ format(round(x, 2), nsmall=2, big.mark=",") })
+    res <- as.data.frame(month.mean)
+    colnames(res) <- names(res)
+    
+    return(res)
+  }, mth.seq)
+  pd.mthly.output <- dplyr::bind_cols(res)
+  pd.mthly.output[is.na(pd.mthly.output)] <- ""
+  colnames(pd.mthly.output) <- mth.seq
+  pd.mthly.output$Key <- c(dict.keys, qdict.keys)
+  
+  #
+  # Load data from excel
+  #
+  gei_lookup <- readxl::read_excel(ei.fn, sheet = "General")
+  lei_lookup <- readxl::read_excel(ei.fn, sheet = "Leading")
+  coi_lookup <- readxl::read_excel(ei.fn, sheet = "Coincident")
+  lai_lookup <- readxl::read_excel(ei.fn, sheet = "Lagging")
+  
+  #
+  # Merge Data
+  #
+  gei_data <- merge.data.frame(gei_lookup, pd.mthly.output, by="Key")
+  lei_data <- merge.data.frame(lei_lookup, pd.mthly.output, by="Key")
+  coi_data <- merge.data.frame(coi_lookup, pd.mthly.output, by="Key")
+  lai_data <- merge.data.frame(lai_lookup, pd.mthly.output, by="Key")
+  
+  #
+  # Return data
+  #
+  return(list(gei_dt = gei_data,
+              lei_dt = lei_data,
+              coi_dt = coi_data,
+              lai_dt = lai_data))
+  
 }

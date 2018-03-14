@@ -6,6 +6,7 @@ source("utility.R")
 # Portfolio refresh time
 #
 refresh_time <- 60000
+ei_refresh_time <- 24 * 60 * 60 * 1000
 blotter_size_tracker <- 1
 message_count_trader <- 1
 
@@ -209,4 +210,25 @@ server <- function(input, output, session) {
                                            searching = TRUE,
                                            paging = TRUE))
   })
+  
+  #
+  # handling economic indicators
+  #
+  eiAutoUpdate <- reactiveTimer(ei_refresh_time)
+  
+  ei_data <- reactive({
+    eiAutoUpdate()
+    ei_data <- UtilGetEconIndicators()
+  })
+  
+  lapply(1:length(econ_indi_tab_names), function(i){
+    ei_name <- econ_indi_tab_names[i]
+    output[[ei_name]] <- DT::renderDataTable({
+      DT::datatable(ei_data()[[ei_name]], options = list(pageLength = 50,
+                                                         orderClasses = TRUE,
+                                                         searching = TRUE,
+                                                         paging = FALSE))
+    })
+  })
+
 }

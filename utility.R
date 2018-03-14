@@ -4,6 +4,7 @@ lapply(lib, function(x){library(x, character.only = TRUE)})
 #
 # Common parameters for server and ui
 #
+acct <- "Paper"
 blotter_field_default_width <- "90px"
 max_blotter_size <- 5
 max_message_count <- 3
@@ -49,7 +50,7 @@ setwd(shiny.dir)
 # Get portfolio data
 # 
 UtilGetPortfolio <- function(){
-  ts1 <- TradingSession(1, "TWS")
+  ts1 <- TradingSession(1, "TWS", acct)
   ts1 <- TSSetTransmit(ts1, FALSE)     #Prevert trade from actually happening
   ts1 <- TSRetrievePortHoldings(ts1)
   TSCloseTradingSession(ts1)
@@ -130,7 +131,7 @@ UtilTradeWithIB <- function(blotter){
 		#
 		# Trade
 		#
-		ts1 <- TradingSession(1, "TWS")
+		ts1 <- TradingSession(1, "TWS", acct)
 		ts1 <- TSSetTransmit(ts1, transmit)     
 		ts1 <- TSSetPrelimTradeList(ts1, blotter)
 		ts1 <- TSGenFnlTradeList(ts1)

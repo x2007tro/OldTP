@@ -138,6 +138,13 @@ server <- function(input, output, session) {
   })
   
   #
+  # Cancel all trades
+  #
+  observeEvent(input$cancel_all_trades, {
+    UtilCancelAllTrades()
+  })
+  
+  #
   # Handling trade order submit
   #
   lapply(1:max_blotter_size, function(i){

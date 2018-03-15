@@ -10,6 +10,7 @@ max_blotter_size <- 5
 max_message_count <- 3
 econ_indi_panel_default_width <- 12
 econ_indi_tab_names <- c("gei_dt", "lei_dt", "coi_dt", "lai_dt")
+ts1 <- TradingSession(1, "TWS", acct)
 
 #
 # Load trading class depending on OS
@@ -51,10 +52,10 @@ setwd(shiny.dir)
 # Get portfolio data
 # 
 UtilGetPortfolio <- function(){
-  ts1 <- TradingSession(1, "TWS", acct)
-  ts1 <- TSSetTransmit(ts1, FALSE)     #Prevert trade from actually happening
-  ts1 <- TSRetrievePortHoldings(ts1)
-  TSCloseTradingSession(ts1)
+  #ts1 <- TradingSession(1, "TWS", acct)
+  ts1 <<- TSSetTransmit(ts1, FALSE)     #Prevert trade from actually happening
+  ts1 <<- TSRetrievePortHoldings(ts1)
+  #TSCloseTradingSession(ts1)
   port_prelim <- ts1$ts_port_holdings
   forex <- ts1$ts_exchange_rate
   
@@ -174,13 +175,13 @@ UtilTradeWithIB <- function(blotter){
 		#
 		# Trade
 		#
-		ts1 <- TradingSession(1, "TWS", acct)
-		ts1 <- TSSetTransmit(ts1, transmit)     
-		ts1 <- TSSetPrelimTradeList(ts1, blotter)
-		ts1 <- TSGenFnlTradeList(ts1)
-		ts1 <- TSExecuteAllTrades(ts1)
+		#ts1 <- TradingSession(1, "TWS", acct)
+		ts1 <<- TSSetTransmit(ts1, transmit)     
+		ts1 <<- TSSetPrelimTradeList(ts1, blotter)
+		ts1 <<- TSGenFnlTradeList(ts1)
+		ts1 <<- TSExecuteAllTrades(ts1)
 		err_msg <- ts1$ts_last_trade_message
-		TSCloseTradingSession(ts1)
+		#TSCloseTradingSession(ts1)
 		
 		#
 		# Run a loop to check if the trade is sucessful
@@ -209,35 +210,46 @@ UtilTradeWithIB <- function(blotter){
 			trade_res$Time <- trade_time
 			trade_res$Result <- "Success"
 			msg <- data.frame(Date = trade_date,
-							  Time = trade_time,
-							  Msg = paste0(tik_with_crcy, " is successfully traded (", side, ") at ",
-											trade_date, " ", trade_time),
-							  stringsAsFactors = FALSE)
+							          Time = trade_time,
+							          Msg = paste0(tik_with_crcy, " is successfully traded (", side, ") at ",
+											               trade_date, " ", trade_time),
+							          stringsAsFactors = FALSE)
 		} else {
 			trade_res$Date <- trade_date
 			trade_res$Time <- trade_time
 			trade_res$Result <- "Failed"
 			msg <- data.frame(Date = trade_date,
-							  Time = trade_time,
-							  Msg = paste0(tik_with_crcy, " is not traded (", side, ") at ",
-											trade_date, " ", trade_time, " : ", err_msg),
-							  stringsAsFactors = FALSE)
+							          Time = trade_time,
+							          Msg = paste0(tik_with_crcy, " is not traded (", side, ") at ",
+											               trade_date, " ", trade_time, " : ", err_msg),
+							          stringsAsFactors = FALSE)
 		}
 	
 	}
   return(list(trade_rec = trade_res, msg_rec = msg))
 }
 
-blotter <- data.frame(LocalTicker = "SPY",
-                      Action = "Buy",
-                      Quantity = 10,
-                      OrderType = "Lmt",
-                      LimitPrice = 100,
-                      SecurityType = "Stk",
-                      Currency = "USD",
-                      TradeSwitch = FALSE,
-                      stringsAsFactors = FALSE)
-res <- UtilTradeWithIB(blotter)
+# blotter <- data.frame(LocalTicker = "AAPL",
+#                       Action = "Buy",
+#                       Quantity = 10,
+#                       OrderType = "Lmt",
+#                       LimitPrice = 150,
+#                       SecurityType = "Stk",
+#                       Currency = "USD",
+#                       TradeSwitch = TRUE,
+#                       stringsAsFactors = FALSE)
+# res <- UtilTradeWithIB(blotter)
+
+#
+# Cancel all trades
+#
+UtilCancelAllTrades <- function(){
+  #ts1 <- TradingSession(1, "TWS", acct)
+  TSCancelAllTrades(ts1)
+  #TSCloseTradingSession(ts1)
+  #ts1 <<- TradingSession(1, "TWS", acct)
+}
+#res <- UtilCancelAllTrades()
 
 #
 # Download etf historical price and calculate return

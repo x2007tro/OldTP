@@ -138,7 +138,9 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                                                             tags$div(style="display:block", uiOutput(paste0('trade_item', i), inline = FALSE))
                                                             ))
                                                           })
-                                                 ) 
+                                                 ),
+                                                 tags$div(id = "cancel_all_trades", style="float:left",
+                                                          actionButton("cancel_all_trades", "Cancel All", width = blotter_field_default_width))
                                         ))
                                )
                         )
@@ -337,7 +339,8 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                tags$li("Add news search function"),
                tags$li("Clean up and reorganize UI"),
                tags$li("Add error handling in Server"),
-               tags$li("Parameterize more items")
+               tags$li("Parameterize more items"),
+               tags$li("Track all active orders in a global variable and fix IB trade class input order ID.")
              ),
              br(), br(),
              tags$h5("Features developed"),
@@ -348,7 +351,10 @@ ui <- fluidPage(theme = shinytheme("lumen"),
              )
     ),
     tabPanel("Configuration",
-             tags$h5("Options")
+             tags$h5("Options"),
+             tags$div("Open Connection"),
+             tags$div("Close Connection"),
+             tags$div("Paper/Live")
     )
   )
   # End of navbarpage

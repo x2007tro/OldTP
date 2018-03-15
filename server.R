@@ -225,7 +225,7 @@ server <- function(input, output, session) {
     ei_name <- econ_indi_tab_names[i]
     output[[ei_name]] <- DT::renderDataTable({
       DT::datatable(ei_data()[[ei_name]], options = list(pageLength = 50,
-                                                         orderClasses = TRUE,
+                                                         orderClasses = FALSE,
                                                          searching = TRUE,
                                                          paging = FALSE))
     })

@@ -308,12 +308,13 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                     # End
                                     
                                     # Introduction to Economic Indicators
-                                    tabPanel("What are Economic Indicators",
+                                    tabPanel("What are Economic Indicators?",
                                              column(12,
+                                                    br(),
                                                     tags$div("An economic indicator is a statistic about an economic activity. 
                                                               Economic indicators allow analysis of economic performance and predictions of future performance.
                                                               The indicators provided by this website are also referred to as The Conference Board Economic Indicators"),
-                                                    br(), br(),
+                                                    br(),
                                                     tags$div("Useful links:"),
                                                     tags$ul(
                                                       tags$li(tags$a(href="https://www.investopedia.com/university/conferenceboard/", "The Conference Board Economic Indicators from Investopedia")),
@@ -328,19 +329,12 @@ ui <- fluidPage(theme = shinytheme("lumen"),
       )
       # End
     ),
-    tabPanel("Instructions",
-             tags$h4("Here are the instructions!")
-             
-    ),
     tabPanel("Development",
              tags$h5("Future features under development:"),
              tags$ul(
-               tags$li("Add economic indicators"),
-               tags$li("Add instructions"),
-               tags$li("Automatically calculate trade values"),
+               tags$li("Add configuration page"),
                tags$li("Better looking theme"),
                tags$li("Add news search function"),
-               tags$li("Add historical trade/messages"),
                tags$li("Clean up and reorganize UI"),
                tags$li("Add error handling in Server"),
                tags$li("Parameterize more items")
@@ -348,8 +342,13 @@ ui <- fluidPage(theme = shinytheme("lumen"),
              br(), br(),
              tags$h5("Features developed"),
              tags$ul(
+               tags$li("Add economic indicators"),
+               tags$li("Automatically calculate trade values"),
                tags$li("Add historical trade/messages")
              )
+    ),
+    tabPanel("Configuration",
+             tags$h5("Options")
     )
   )
   # End of navbarpage

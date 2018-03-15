@@ -19,15 +19,16 @@ if(R.Version()$os == "linux-gnu"){
   cls.rpo.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
   shiny.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/")
   watchlist.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
+  ei.fn <- paste0(cls.rpo.dir, "EconomicIndicatorsDescription.xlsx")
 } else {
   onedrive.dir <- "C:/Users/KMIN/OneDrive/"
   cls.rpo.dir <- paste0(onedrive.dir, "Development/R/Repository/Class/")
   shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
   watchlist.dir <- paste0(onedrive.dir, "Investment/Research/Economic Indicators/")
+  ei.fn <- paste0(shiny.dir, "EconomicIndicatorsDescription.xlsx")
   
 }
 ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
-ei.fn <- paste0(shiny.dir, "EconomicIndicatorsDescription.xlsx")
 
 #
 # Load portfolio status function
@@ -55,39 +56,76 @@ UtilGetPortfolio <- function(){
   ts1 <- TSRetrievePortHoldings(ts1)
   TSCloseTradingSession(ts1)
   port_prelim <- ts1$ts_port_holdings
-
-  update_time <- port_prelim$TimeStamp[1]  # Output 1
+  forex <- ts1$ts_exchange_rate
   
-  port_prelim <- port_prelim[port_prelim$LocalTicker != "USD.CAD",]
-  port_prelim$Ticker <- paste0(port_prelim$LocalTicker, "-", port_prelim$Currency)
-  
-  holdings <- port_prelim[,"Ticker"]  # Output 2
-  
-  port_prelim$UnrealizedPNLPrc <- paste0(round(port_prelim$UnrealizedPNL/(port_prelim$Position*port_prelim$AvgCost)*100,2),"%")
-  port_prelim$Cost <- round(port_prelim$AvgCost, 2)
-  port_prelim$Position <- round(port_prelim$Position, 2)
-  
-  port_intrim <- port_prelim[,c("Ticker", "SecurityType", "Position", "Cost", "UnrealizedPNL", "UnrealizedPNLPrc")]
-  
-  us_cash <- ts1$ts_us_cash_balance
-  port_us_cash <- data.frame(Ticker = "USD",
-                             SecurityType = "CASH",
-                             Position = round(us_cash,2),
-                             Cost = 0,
-                             UnrealizedPNL = 0,
-                             UnrealizedPNLPrc = "0.00%",
-                             stringsAsFactors = FALSE)
-  
-  ca_cash <- ts1$ts_ca_cash_balance
-  port_ca_cash <- data.frame(Ticker = "CAD",
-                             SecurityType = "CASH",
-                             Position = round(ca_cash,2),
-                             Cost = 0,
-                             UnrealizedPNL = 0,
-                             UnrealizedPNLPrc = "0.00%",
-                             stringsAsFactors = FALSE)
-  
-  port <- dplyr::bind_rows(list(port_intrim, port_us_cash, port_ca_cash))  # Output 3
+  if(nrow(port_prelim) == 0){
+    update_time <- Sys.time()
+    holdings <- data.frame(Ticker = character(0), stringsAsFactors = FALSE)
+    port_intrim <- data.frame(Ticker = character(0),
+                              SecurityType = character(0),
+                              Position = numeric(0),
+                              Cost = numeric(0),
+                              MktPrc = numeric(0),
+                              UnrealizedPNL = numeric(0),
+                              UnrealizedPNLPrc = character(0),
+                              stringsAsFactors = FALSE)
+    
+    us_cash <- ts1$ts_us_cash_balance
+    port_us_cash <- data.frame(Ticker = "USD",
+                               SecurityType = "CASH",
+                               Position = round(us_cash,2),
+                               Cost = 0,
+                               MkrPrc =  round(us_cash * forex,2),
+                               UnrealizedPNL = 0,
+                               UnrealizedPNLPrc = "0.00%",
+                               stringsAsFactors = FALSE)
+    
+    ca_cash <- ts1$ts_ca_cash_balance
+    port_ca_cash <- data.frame(Ticker = "CAD",
+                               SecurityType = "CASH",
+                               Position = round(ca_cash,2),
+                               Cost = 0,
+                               MkrPrc = round(ca_cash * 1,2),
+                               UnrealizedPNL = 0,
+                               UnrealizedPNLPrc = "0.00%",
+                               stringsAsFactors = FALSE)
+    
+    port <- dplyr::bind_rows(list(port_us_cash, port_ca_cash))  # Output 3
+  } else {
+    update_time <- port_prelim$TimeStamp[1]  # Output 1
+    port_prelim <- port_prelim[port_prelim$LocalTicker != "USD.CAD",]
+    port_prelim$Ticker <- paste0(port_prelim$LocalTicker, "-", port_prelim$Currency)
+    
+    holdings <- port_prelim[,"Ticker"]  # Output 2
+    
+    port_prelim$UnrealizedPNLPrc <- paste0(round(port_prelim$UnrealizedPNL/(port_prelim$Position*port_prelim$AvgCost)*100,2),"%")
+    port_prelim$Cost <- round(port_prelim$AvgCost, 2)
+    port_prelim$Position <- round(port_prelim$Position, 2)
+    
+    port_intrim <- port_prelim[,c("Ticker", "SecurityType", "Position", "Cost", "MktPrc", "UnrealizedPNL", "UnrealizedPNLPrc")]
+    
+    us_cash <- ts1$ts_us_cash_balance
+    port_us_cash <- data.frame(Ticker = "USD",
+                               SecurityType = "CASH",
+                               Position = round(us_cash,2),
+                               Cost = 0,
+                               MkrPrc = forex,
+                               UnrealizedPNL = 0,
+                               UnrealizedPNLPrc = "0.00%",
+                               stringsAsFactors = FALSE)
+    
+    ca_cash <- ts1$ts_ca_cash_balance
+    port_ca_cash <- data.frame(Ticker = "CAD",
+                               SecurityType = "CASH",
+                               Position = round(ca_cash,2),
+                               Cost = 0,
+                               MkrPrc = 1,
+                               UnrealizedPNL = 0,
+                               UnrealizedPNLPrc = "0.00%",
+                               stringsAsFactors = FALSE)
+    
+    port <- dplyr::bind_rows(list(port_intrim, port_us_cash, port_ca_cash))  # Output 3
+  }
   
   return(list(update_datetime = update_time,
               holdings = holdings,
@@ -99,13 +137,18 @@ UtilGetPortfolio <- function(){
 #
 UtilFindCurrentHolding <- function(ticker_with_current){
   port <- UtilGetPortfolio()$port
-  holding <- port[port$Ticker == ticker_with_current,]
-  
-  if(nrow(holding) == 0){
-	pos <- 0
+  if(nrow(port) == 0){
+    pos <- 0
   } else {
-	pos <- holding[,"Position"]
+    holding <- port[port$Ticker == ticker_with_current,]
+    
+    if(nrow(holding) == 0){
+      pos <- 0
+    } else {
+      pos <- holding[,"Position"]
+    }
   }
+
 }
 
 #
@@ -185,16 +228,16 @@ UtilTradeWithIB <- function(blotter){
   return(list(trade_rec = trade_res, msg_rec = msg))
 }
 
-# blotter <- data.frame(LocalTicker = "SPY",
-#                       Action = "Buy",
-#                       Quantity = 1,
-#                       OrderType = "Mkt",
-#                       LimitPrice = 0,
-#                       SecurityType = "Stk",
-#                       Currency = "USD",
-#                       TradeSwitch = FALSE,
-#                       stringsAsFactors = FALSE)
-# res <- UtilTradeWithIB(blotter)
+blotter <- data.frame(LocalTicker = "SPY",
+                      Action = "Buy",
+                      Quantity = 10,
+                      OrderType = "Lmt",
+                      LimitPrice = 100,
+                      SecurityType = "Stk",
+                      Currency = "USD",
+                      TradeSwitch = FALSE,
+                      stringsAsFactors = FALSE)
+res <- UtilTradeWithIB(blotter)
 
 #
 # Download etf historical price and calculate return
@@ -317,7 +360,7 @@ UtilPlotMarketReturn <- function(master_plot_data, market, period){
     theme(rect = element_rect(fill = "#C0C0C0"),
           panel.background = element_rect(fill = "#C0C0C0"),
           legend.key = element_rect(fill = "#C0C0C0"),
-          legend.position = "top",
+          legend.position = "bottom",
           text = element_text(color = "#000000"),
           axis.text = element_text(color = "#000000"),
           axis.ticks = element_line(color = "#000000"),

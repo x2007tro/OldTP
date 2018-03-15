@@ -236,10 +236,10 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                                       )
                                       )),
                                       fluidRow(column(12,
-                                                      tags$h5("Latest information"),
+                                                      #tags$h5("Latest information"),
                                                       tags$div(style="padding:0px, margin:0px, height:100%",
-                                                               textOutput("prev_day_quote")), br(),
-                                                      tags$h5("Historical Performance (1 Year)"),
+                                                               dataTableOutput("prev_day_quote")), 
+                                                      #tags$h5("Historical Performance (1 Year)"),
                                                       tags$div(style="padding:0px, margin:0px, height:100%",
                                                                plotOutput("hist_return"))
                                       ))
@@ -367,7 +367,8 @@ ui <- fluidPage(theme = shinytheme("lumen"),
              tags$h5("Options"),
              tags$div(actionButton("config_open", "Start TWS", width = blotter_field_default_width)),
              tags$div(actionButton("config_close", "End TWS", width = blotter_field_default_width)),
-             tags$div("Paper/Live")
+             tags$div("Paper/Live"),
+             tags$div("Foreign Exchange order")
     )
   )
   # End of navbarpage

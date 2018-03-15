@@ -195,10 +195,12 @@ server <- function(input, output, session) {
   #
   observeEvent(input$ticker_search_submit, {
     tik <- isolate(input$ticker_search)
-    output$prev_day_quote <- renderText({
+    output$prev_day_quote <- DT::renderDataTable({
       prc <- UtilGetStockLastestPrice(tik)
-      opt <- paste0(c("Date", colnames(prc)), ": ", 
-                     c(format(index(prc)[1], "%Y-%m-%d"), round(prc[1,],2)))
+      opt <- as.data.frame(t(c(format(index(prc)[1], "%Y-%m-%d"), round(prc[1,],2))))
+      colnames(opt) <- c("Date", colnames(prc))
+
+      DT::datatable(opt, options = list(dom = "t"))
     })
     
     output$hist_return <- renderPlot({

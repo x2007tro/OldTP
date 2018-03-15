@@ -142,6 +142,11 @@ server <- function(input, output, session) {
   #
   observeEvent(input$cancel_all_trades, {
     UtilCancelAllTrades()
+    # Update active orders
+    output$current_active_trades <- renderText({
+      res <- paste(active_trade_ids, " ,")
+      res <- substr(res, 1, nchar(res)-2)
+    })
   })
   
   #
@@ -175,7 +180,13 @@ server <- function(input, output, session) {
       output[[paste0('message', msg_id)]] <- renderText({
         msg$Msg
       })
-      message_count_trader <<- message_count_trader + 1 
+      message_count_trader <<- message_count_trader + 1
+      
+      # Update active orders
+      output$current_active_trades <- renderText({
+        res <- paste0(active_trade_ids, collapse = ", ")
+        res <- paste0(" ", res)
+      })
     })
   })
   
@@ -236,6 +247,25 @@ server <- function(input, output, session) {
                                                          searching = TRUE,
                                                          paging = FALSE))
     })
+  })
+  
+  #
+  # Close session
+  #
+  session$onSessionEnded(function() {
+    TSCloseTradingSession(ts_static)
+    print('The session has ended')
+  })
+  
+  #
+  # Handl configuration
+  #
+  observeEvent(input$config_open, {
+    OpenCloseConn("open")
+  })
+  
+  observeEvent(input$config_close, {
+    OpenCloseConn("close")
   })
 
 }

@@ -1,6 +1,5 @@
 lib <- c("shiny","shinythemes","DT")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-source("utility.R")
 
 #
 # UI Layout (Trader Portal)
@@ -138,9 +137,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                                                             tags$div(style="display:block", uiOutput(paste0('trade_item', i), inline = FALSE))
                                                             ))
                                                           })
-                                                 ),
-                                                 tags$div(id = "cancel_all_trades", style="float:left",
-                                                          actionButton("cancel_all_trades", "Cancel All", width = blotter_field_default_width))
+                                                 )
                                         ))
                                )
                         )
@@ -148,16 +145,32 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                       ),
                       
                       fluidRow(
-                        # Message Column
-                        column(12, id = "message",
-                               tags$div(class = "nano_block",
-                                        tags$h4("Message"),
-                                        lapply(1:max_message_count, function(i){
-                                          tags$div(style="display:block", textOutput(paste0('message', i), inline = FALSE))
-                                        })
+                        column(12,
+                               # Message Column
+                               column(6, id = "message", style = "padding:0px 1px 0px 0px",
+                                      tags$div(class = "nano_block",
+                                               tags$h4("Message"),
+                                               lapply(1:max_message_count, function(i){
+                                                 tags$div(style="display:block", textOutput(paste0('message', i), inline = FALSE))
+                                               })
+                                      )
+                               ),
+                               # End
+                               
+                               # Cancel order column
+                               column(6, id = "cancel_orders", style = "padding:0px 0px 0px 1px",
+                                      tags$div(class = "nano_block",
+                                               tags$h4("Past Orders"),
+                                               fluidRow(column(12,
+                                                               tags$div("Active:", style="float:left"),
+                                                               tags$div(textOutput("current_active_trades"), style="float:left"),
+                                                               tags$div(id = "cancel_all_trades", style="float:right",
+                                                                        actionButton("cancel_all_trades", "Cancel All", width = blotter_field_default_width))
+                                               ))
+                                      )
                                )
+                               # End
                         )
-                        # End
                       )
                )
                # End
@@ -211,10 +224,10 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                column(6, style = "padding:0px 10px 0px 1px",
                       
                       # Watchlist Column
-                      column(12, id = "watchlist", style = "padding:0px 1px 0px 1px",
+                      column(12, id = "watchlist", style = "padding:0px 0px 0px 1px",
                              tags$div(class = "macro_block",
                                       fluidRow(column(12,
-                                                      tags$h4("Watchlist", style="float:left"),
+                                                      tags$div("Watchlist", style="float:left"),
                                                       tags$div(style="float:right; padding:0px, margin:0px, height:100%",
                                                                actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
                                                       ),
@@ -352,8 +365,8 @@ ui <- fluidPage(theme = shinytheme("lumen"),
     ),
     tabPanel("Configuration",
              tags$h5("Options"),
-             tags$div("Open Connection"),
-             tags$div("Close Connection"),
+             tags$div(actionButton("config_open", "Start TWS", width = blotter_field_default_width)),
+             tags$div(actionButton("config_close", "End TWS", width = blotter_field_default_width)),
              tags$div("Paper/Live")
     )
   )

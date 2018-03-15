@@ -2,15 +2,21 @@ lib <- c("ggplot2", "tidyr", "readxl")
 lapply(lib, function(x){library(x, character.only = TRUE)})
 
 #
+# IB Trading specific variables
+#
+platform <- "TWS"     # Options: TWS, IBG
+acct <- "Paper"    # Options: Live, Paper
+active_trade_ids <- c()
+ts_static <<- TradingSession(22, platform, acct)
+
+#
 # Common parameters for server and ui
 #
-acct <- "Paper"
 blotter_field_default_width <- "90px"
 max_blotter_size <- 5
 max_message_count <- 3
 econ_indi_panel_default_width <- 12
 econ_indi_tab_names <- c("gei_dt", "lei_dt", "coi_dt", "lai_dt")
-ts1 <- TradingSession(1, "TWS", acct)
 
 #
 # Load trading class depending on OS
@@ -22,7 +28,7 @@ if(R.Version()$os == "linux-gnu"){
   watchlist.dir <- paste0(onedrive.dir, "ShinyApps/TraderPortal/Helper/")
   ei.fn <- paste0(cls.rpo.dir, "EconomicIndicatorsDescription.xlsx")
 } else {
-  onedrive.dir <- "C:/Users/KMIN/OneDrive/"
+  onedrive.dir <- "C:/Users/KE/OneDrive/"
   cls.rpo.dir <- paste0(onedrive.dir, "Development/R/Repository/Class/")
   shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
   watchlist.dir <- paste0(onedrive.dir, "Investment/Research/Economic Indicators/")
@@ -52,12 +58,12 @@ setwd(shiny.dir)
 # Get portfolio data
 # 
 UtilGetPortfolio <- function(){
-  #ts1 <- TradingSession(1, "TWS", acct)
-  ts1 <<- TSSetTransmit(ts1, FALSE)     #Prevert trade from actually happening
-  ts1 <<- TSRetrievePortHoldings(ts1)
-  #TSCloseTradingSession(ts1)
-  port_prelim <- ts1$ts_port_holdings
-  forex <- ts1$ts_exchange_rate
+  ts_tmp <- TradingSession(11, platform, acct)
+  ts_tmp <- TSSetTransmit(ts_tmp, FALSE)     #Prevert trade from actually happening
+  ts_tmp <- TSRetrievePortHoldings(ts_tmp)
+  TSCloseTradingSession(ts_tmp)
+  port_prelim <- ts_tmp$ts_port_holdings
+  forex <- ts_tmp$ts_exchange_rate
   
   if(nrow(port_prelim) == 0){
     update_time <- Sys.time()
@@ -71,7 +77,7 @@ UtilGetPortfolio <- function(){
                               UnrealizedPNLPrc = character(0),
                               stringsAsFactors = FALSE)
     
-    us_cash <- ts1$ts_us_cash_balance
+    us_cash <- ts_tmp$ts_us_cash_balance
     port_us_cash <- data.frame(Ticker = "USD",
                                SecurityType = "CASH",
                                Position = round(us_cash,2),
@@ -81,7 +87,7 @@ UtilGetPortfolio <- function(){
                                UnrealizedPNLPrc = "0.00%",
                                stringsAsFactors = FALSE)
     
-    ca_cash <- ts1$ts_ca_cash_balance
+    ca_cash <- ts_tmp$ts_ca_cash_balance
     port_ca_cash <- data.frame(Ticker = "CAD",
                                SecurityType = "CASH",
                                Position = round(ca_cash,2),
@@ -105,7 +111,7 @@ UtilGetPortfolio <- function(){
     
     port_intrim <- port_prelim[,c("Ticker", "SecurityType", "Position", "Cost", "MktPrc", "UnrealizedPNL", "UnrealizedPNLPrc")]
     
-    us_cash <- ts1$ts_us_cash_balance
+    us_cash <- ts_tmp$ts_us_cash_balance
     port_us_cash <- data.frame(Ticker = "USD",
                                SecurityType = "CASH",
                                Position = round(us_cash,2),
@@ -115,7 +121,7 @@ UtilGetPortfolio <- function(){
                                UnrealizedPNLPrc = "0.00%",
                                stringsAsFactors = FALSE)
     
-    ca_cash <- ts1$ts_ca_cash_balance
+    ca_cash <- ts_tmp$ts_ca_cash_balance
     port_ca_cash <- data.frame(Ticker = "CAD",
                                SecurityType = "CASH",
                                Position = round(ca_cash,2),
@@ -175,13 +181,15 @@ UtilTradeWithIB <- function(blotter){
 		#
 		# Trade
 		#
-		#ts1 <- TradingSession(1, "TWS", acct)
-		ts1 <<- TSSetTransmit(ts1, transmit)     
-		ts1 <<- TSSetPrelimTradeList(ts1, blotter)
-		ts1 <<- TSGenFnlTradeList(ts1)
-		ts1 <<- TSExecuteAllTrades(ts1)
-		err_msg <- ts1$ts_last_trade_message
-		#TSCloseTradingSession(ts1)
+		# ts_static <<- TradingSession(22, platform, acct)
+		ts_static <<- TSSetTransmit(ts_static, transmit)     
+		ts_static <<- TSSetPrelimTradeList(ts_static, blotter)
+		ts_static <<- TSGenFnlTradeList(ts_static)
+		ts_static <<- TSExecuteAllTrades(ts_static)
+		curr_trd_id <- ts_static$ts_trade_ids[length(ts_static$ts_trade_ids)]
+		print(curr_trd_id)
+		err_msg <- ts_static$ts_last_trade_message[length(ts_static$ts_trade_ids)]
+		# TSCloseTradingSession(ts_static)
 		
 		#
 		# Run a loop to check if the trade is sucessful
@@ -209,19 +217,28 @@ UtilTradeWithIB <- function(blotter){
 			trade_res$Date <- trade_date
 			trade_res$Time <- trade_time
 			trade_res$Result <- "Success"
+			trade_res$TradeID <- curr_trd_id
+			trade_res <- trade_res[,c(ncol(trade_res),1:(ncol(trade_res)-1))]
+			
 			msg <- data.frame(Date = trade_date,
 							          Time = trade_time,
-							          Msg = paste0(tik_with_crcy, " is successfully traded (", side, ") at ",
+							          Msg = paste0("Trade (",curr_trd_id, ") ", tik_with_crcy, " is successfully traded (", side, ") at ",
 											               trade_date, " ", trade_time),
 							          stringsAsFactors = FALSE)
 		} else {
-			trade_res$Date <- trade_date
+		  if(curr_trd_id != -1){
+		    active_trade_ids <<- c(active_trade_ids, curr_trd_id)   # Update background active trades
+		  }
+		  trade_res$Date <- trade_date
 			trade_res$Time <- trade_time
 			trade_res$Result <- "Failed"
+			trade_res$TradeID <- curr_trd_id
+			trade_res <- trade_res[,c(ncol(trade_res),1:(ncol(trade_res)-1))]
+			
 			msg <- data.frame(Date = trade_date,
 							          Time = trade_time,
-							          Msg = paste0(tik_with_crcy, " is not traded (", side, ") at ",
-											               trade_date, " ", trade_time, " : ", err_msg),
+							          Msg = paste0("Trade (",curr_trd_id, ") ", tik_with_crcy, " is not traded (", side, ") at ",
+											               trade_date, " ", trade_time),
 							          stringsAsFactors = FALSE)
 		}
 	
@@ -229,14 +246,14 @@ UtilTradeWithIB <- function(blotter){
   return(list(trade_rec = trade_res, msg_rec = msg))
 }
 
-# blotter <- data.frame(LocalTicker = "AAPL",
+# blotter <- data.frame(LocalTicker = "IEFA",
 #                       Action = "Buy",
 #                       Quantity = 10,
 #                       OrderType = "Lmt",
-#                       LimitPrice = 150,
+#                       LimitPrice = 20,
 #                       SecurityType = "Stk",
 #                       Currency = "USD",
-#                       TradeSwitch = TRUE,
+#                       TradeSwitch = FALSE,
 #                       stringsAsFactors = FALSE)
 # res <- UtilTradeWithIB(blotter)
 
@@ -244,12 +261,15 @@ UtilTradeWithIB <- function(blotter){
 # Cancel all trades
 #
 UtilCancelAllTrades <- function(){
-  #ts1 <- TradingSession(1, "TWS", acct)
-  TSCancelAllTrades(ts1)
-  #TSCloseTradingSession(ts1)
-  #ts1 <<- TradingSession(1, "TWS", acct)
+  # Cancel all trades
+  TSCancelAllTrades(ts_static)
+  active_trade_ids <<- c()
+  
+  # Re-open ts Static
+  # TSCloseTradingSession(ts_static)
+  # ts_static <<- TradingSession(22, platform, acct)
 }
-#res <- UtilCancelAllTrades()
+# res <- UtilCancelAllTrades()
 
 #
 # Download etf historical price and calculate return
@@ -566,4 +586,20 @@ UtilGetEconIndicators <- function(){
               coi_dt = coi_data,
               lai_dt = lai_data))
   
+}
+
+#
+# Manual open & close connection
+#
+OpenCloseConn <- function(dirc = c("open", "close")){
+  d <- match.arg(dirc)
+  if(d == "open"){
+    if(!TSIsConnected(ts_static)){
+      ts_static <<- TradingSession(22, platform, acct)
+    }
+  } else {
+    if(TSIsConnected(ts_static)){
+      TSCloseTradingSession(ts_static)
+    }
+  }
 }

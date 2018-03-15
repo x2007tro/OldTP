@@ -156,16 +156,16 @@ server <- function(input, output, session) {
     observeEvent(input[[paste0("trade",i)]],{
 
 	    blotter <- data.frame(LocalTicker = input[[paste0('ticker',i)]],
-							Action = input[[paste0('side',i)]],
-							Quantity = input[[paste0('shares',i)]],
-							OrderType = input[[paste0('type',i)]],
-							LimitPrice = input[[paste0('limit_price',i)]],
-							SecurityType = "Stk",
-							Currency = input[[paste0('currency',i)]],
-							TradeSwitch = input[[paste0('transmit',i)]],
-							stringsAsFactors = FALSE)
+							              Action = input[[paste0('side',i)]],
+							              Quantity = input[[paste0('shares',i)]],
+							              OrderType = input[[paste0('type',i)]],
+							              LimitPrice = input[[paste0('limit_price',i)]],
+							              SecurityType = "Stk",
+							              Currency = input[[paste0('currency',i)]],
+							              TradeSwitch = input[[paste0('transmit',i)]],
+							              stringsAsFactors = FALSE)
 	  
-	    res <- UtilTradeWithIB(blotter)
+	    res <- UtilTradeEquityWithIB(blotter)
       msg <- res$msg_rec
       trd <- res$trade_rec
 	  

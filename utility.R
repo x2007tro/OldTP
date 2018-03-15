@@ -159,9 +159,9 @@ UtilFindCurrentHolding <- function(ticker_with_current){
 }
 
 #
-# Trade functions
+# Trade equity functions
 #
-UtilTradeWithIB <- function(blotter){
+UtilTradeEquityWithIB <- function(blotter){
 	for(i in 1:nrow(blotter)){
 		tik_with_crcy <- paste0(blotter[i,"LocalTicker"], "-", blotter[i,"Currency"])
 		side <- blotter[i,"Action"]
@@ -256,6 +256,33 @@ UtilTradeWithIB <- function(blotter){
 #                       TradeSwitch = FALSE,
 #                       stringsAsFactors = FALSE)
 # res <- UtilTradeWithIB(blotter)
+
+#
+# Trade forex functions
+#
+UtilTradeForexWithIB <- function(blotter){
+  for(i in 1:nrow(blotter)){
+    transmit <- blotter[i,"TradeSwitch"]
+    
+    #
+    # Trade
+    #
+    # ts_static <<- TradingSession(22, platform, acct)
+    ts_static <<- TSSetTransmit(ts_static, transmit)     
+    ts_static <<- TSExecuteTrade(ts_static, blotter[i,])
+    
+    res <- ts_static$ts_trade_results[length(ts_static$ts_trade_results)]
+  }
+  return(0)
+}
+
+blotter <- data.frame(From = "USD",
+                      To = "CAD",
+                      Quantity = "100",
+                      SecurityType = "Forex",
+                      TradeSwitch = FALSE,
+                      stringsAsFactors = FALSE)
+res <- UtilTradeForexWithIB(blotter)
 
 #
 # Cancel all trades

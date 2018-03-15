@@ -227,7 +227,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                       column(12, id = "watchlist", style = "padding:0px 0px 0px 1px",
                              tags$div(class = "macro_block",
                                       fluidRow(column(12,
-                                                      tags$div("Watchlist", style="float:left"),
+                                                      tags$h5("Watchlist", style="float:left"),
                                                       tags$div(style="float:right; padding:0px, margin:0px, height:100%",
                                                                actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
                                                       ),

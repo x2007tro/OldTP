@@ -1,5 +1,6 @@
 lib <- c("shiny","shinythemes","DT")
 lapply(lib, function(x){library(x, character.only = TRUE)})
+source("par.R")
 
 #
 # UI Layout (Trader Portal)
@@ -91,7 +92,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                # Portfolio Column
                column(6, id = "portfolio", style = "padding:0px 1px 0px 10px",
                       tags$div(class = "macro_block",
-                               tags$h4("Portfolio", style="float:left"),
+                               tags$h4(tags$b("Portfolio"), style="float:left"),
                                tags$h5(textOutput("last_update_time"), style="float:right"),
                                tags$div(
                                  DT::dataTableOutput("portfolio_dt")
@@ -113,8 +114,8 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                         # Blotter Column
                         column(12,id = "blotter",
                                tags$div(class = "micro_block",
-                                        fluidRow(      column(12,
-                                            tags$h4("Blotter", style="float:left"),
+                                        fluidRow(column(12,
+                                            tags$h4(tags$b("Blotter"), style="float:left"),
                                             tags$div(id = "blotter_size_div", style="float:right",
                                                      selectInput("blotter_size_selector", NULL, choices = 1:10, width = blotter_field_default_width)
                                             )
@@ -149,7 +150,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                # Message Column
                                column(6, id = "message", style = "padding:0px 1px 0px 0px",
                                       tags$div(class = "nano_block",
-                                               tags$h4("Message"),
+                                               tags$h4(tags$b("Message")),
                                                lapply(1:max_message_count, function(i){
                                                  tags$div(style="display:block", textOutput(paste0('message', i), inline = FALSE))
                                                })
@@ -160,7 +161,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                # Cancel order column
                                column(6, id = "cancel_orders", style = "padding:0px 0px 0px 1px",
                                       tags$div(class = "nano_block",
-                                               tags$h4("Past Orders"),
+                                               tags$h4(tags$b("Past Orders")),
                                                fluidRow(column(12,
                                                                tags$div("Active:", style="float:left"),
                                                                tags$div(textOutput("current_active_trades"), style="float:left"),
@@ -183,7 +184,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                # Market Column
                column(6, id = "market", style = "padding:0px 1px 0px 10px",
                       tags$div(class = "macro_block",
-                               tags$h4("Market", tyle="float:left"),
+                               tags$h4(tags$b("Market"), tyle="float:left"),
                                tabsetPanel(position = "below",
                                            # Equity curve
                                            tabPanel("Equity",
@@ -227,7 +228,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                       column(12, id = "watchlist", style = "padding:0px 0px 0px 1px",
                              tags$div(class = "macro_block",
                                       fluidRow(column(12,
-                                                      tags$h5("Watchlist", style="float:left"),
+                                                      tags$h4(tags$b("Watchlist"), style="float:left"),
                                                       tags$div(style="float:right; padding:0px, margin:0px, height:100%",
                                                                actionButton("ticker_search_submit", "Get quote", width = blotter_field_default_width)
                                                       ),
@@ -251,24 +252,60 @@ ui <- fluidPage(theme = shinytheme("lumen"),
              ) # End of fluidrow
     ), # End of trader portal tab
     tabPanel("Trade History",
+             tabsetPanel(position = "below",
+                         tabPanel("Past Trades",
+                           fluidRow(
+                             column(7,
+                                    fluidRow(
+                                      DT::dataTableOutput("past_trades")
+                                    )
+                             )
+                           )
+                         ),
+                         tabPanel("Past Messages",
+                           fluidRow(
+                             column(4,
+                                    fluidRow(
+                                      DT::dataTableOutput("past_messages")     
+                                    )
+                             )
+                           )
+                         )
+             )
+
+    ),
+    tabPanel("Account",
              fluidRow(
-               column(12,
-                      fluidRow(
-                        tags$h4(tags$b("Past Trades"))
-                      ),
-                      fluidRow(
-                        DT::dataTableOutput("past_trades")
-                      )
-               )
-             ),
-             fluidRow(
-               column(12,
-                      fluidRow(
-                        tags$h4(tags$b("Past Messages"))    
-                      ),
-                      fluidRow(
-                        DT::dataTableOutput("past_messages")     
-                      )
+               column(6, style = "padding:0px 2px 0px 2px",
+                 tags$h4(tags$b("Account Snapshot")),
+                 tags$div(dataTableOutput("account_snapshot"))
+               ), 
+               column(6, style = "padding:0px 2px 0px 2px",
+                 tags$h4(tags$b("USD-CAD Conversion")),
+                 tags$div(style="display:block",
+                          tags$div(class = "blotter_fields", "Target Currency"),
+                          tags$div(class = "blotter_fields", "Target Value"),
+                          tags$div(class = "blotter_fields", "Transmit"),
+                          tags$div(class = "blotter_fields", "Required Currency"),
+                          tags$div(class = "blotter_fields", "Required Value"),
+                          tags$div(class = "blotter_fields", "Trade Message"),
+                          br(), br(),
+                          fluidRow(column(12,
+                            tags$div(class = "blotter_fields", selectInput("tgt_curr", NULL, choices = c("USD", "CAD"), width = blotter_field_default_width)),
+                            tags$div(class = "blotter_fields", numericInput("tgt_val", NULL, 100, width = blotter_field_default_width)),
+                            tags$div(class = "blotter_fields", checkboxInput('forex_trade_transmit', NULL, value = FALSE, width = blotter_field_default_width)),
+                            tags$div(class = "blotter_fields", textInput("req_curr", NULL, value = "CAD", width = blotter_field_default_width)),
+                            tags$div(class = "blotter_fields", textInput("req_val", NULL, value = "0", width = blotter_field_default_width)),
+                            tags$div(class = "blotter_fields", textInput("forex_trade_msg", NULL, value = "", width = blotter_field_default_width)),
+                            br(), br(),
+                            fluidRow(
+                              column(12,
+                                     tags$div(class = "blotter_fields", actionButton("trade_forex", "Trade", width = blotter_field_default_width))
+                              )
+                            )
+                          ))
+                      
+                 )
                )
              )
     ),

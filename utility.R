@@ -1,22 +1,6 @@
 lib <- c("ggplot2", "tidyr", "readxl")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-
-#
-# IB Trading specific variables
-#
-platform <- "TWS"     # Options: TWS, IBG
-acct <- "Paper"    # Options: Live, Paper
-active_trade_ids <- c()
-ts_static <<- TradingSession(22, platform, acct)
-
-#
-# Common parameters for server and ui
-#
-blotter_field_default_width <- "90px"
-max_blotter_size <- 5
-max_message_count <- 3
-econ_indi_panel_default_width <- 12
-econ_indi_tab_names <- c("gei_dt", "lei_dt", "coi_dt", "lai_dt")
+source("par.R")
 
 #
 # Load trading class depending on OS
@@ -45,6 +29,11 @@ source("IB_TWS_TradingSession.R")
 source("FinancialSecurityHistoricalData.R")
 source("EconomicIndicators.R")
 
+#
+# Buy/Sell trading session
+#
+ts_static <- TradingSession(22, platform, acct)
+
 ##
 # Utility functions for shiny trading portal
 ##
@@ -64,6 +53,7 @@ UtilGetPortfolio <- function(){
   TSCloseTradingSession(ts_tmp)
   port_prelim <- ts_tmp$ts_port_holdings
   forex <- ts_tmp$ts_exchange_rate
+  acct_info <- ts_tmp$ts_port_info
   
   if(nrow(port_prelim) == 0){
     update_time <- Sys.time()
@@ -136,7 +126,8 @@ UtilGetPortfolio <- function(){
   
   return(list(update_datetime = update_time,
               holdings = holdings,
-              portfolio = port))
+              portfolio = port,
+              acctInfo = acct_info))
 }
 
 #
@@ -262,27 +253,52 @@ UtilTradeEquityWithIB <- function(blotter){
 #
 UtilTradeForexWithIB <- function(blotter){
   for(i in 1:nrow(blotter)){
+    curr_us_balance <- UtilFindCurrentHolding("USD")
+    curr_ca_balance <- UtilFindCurrentHolding("CAD")
+    
     transmit <- blotter[i,"TradeSwitch"]
+    tgt_curr <- blotter[,"TargetCurrency"]
+    tgt_value <- blotter[,"TargetValue"]
     
-    #
-    # Trade
-    #
-    # ts_static <<- TradingSession(22, platform, acct)
-    ts_static <<- TSSetTransmit(ts_static, transmit)     
-    ts_static <<- TSExecuteTrade(ts_static, blotter[i,])
-    
-    res <- ts_static$ts_trade_results[length(ts_static$ts_trade_results)]
+    if(tgt_curr == "USD"){
+      expected_us_balance <- curr_us_balance + tgt_value
+      
+      # ts_static <<- TradingSession(22, platform, acct)
+      ts_static <- TSSetTransmit(ts_static, transmit)     
+      TSExecuteTrade(ts_static, blotter[i,])
+      
+      actual_us_balance <- UtilFindCurrentHolding("USD")
+      
+      if(actual_us_balance >= expected_us_balance) {
+        res <- "Successful"
+      } else {
+        res <-"Failed"
+      }
+    } else {
+      expected_ca_balance <- curr_ca_balance + tgt_value - 5   # Account for exchange rate rounding
+      
+      # ts_static <<- TradingSession(22, platform, acct)
+      ts_static <- TSSetTransmit(ts_static, transmit)     
+      TSExecuteTrade(ts_static, blotter[i,])
+      
+      actual_ca_balance <- UtilFindCurrentHolding("CAD")
+      
+      if(actual_ca_balance >= expected_ca_balance){
+        res = "Successful"
+      } else {
+        res= "Failed"
+      }
+    }
   }
-  return(0)
+  return(res)
 }
 
-blotter <- data.frame(From = "USD",
-                      To = "CAD",
-                      Quantity = "100",
-                      SecurityType = "Forex",
-                      TradeSwitch = FALSE,
-                      stringsAsFactors = FALSE)
-res <- UtilTradeForexWithIB(blotter)
+# blotter <- data.frame(TargetCurrency = "CAD",
+#                       TargetValue = 100,
+#                       SecurityType = "Forex",
+#                       TradeSwitch = FALSE,
+#                       stringsAsFactors = FALSE)
+# res <- UtilTradeForexWithIB(blotter)
 
 #
 # Cancel all trades

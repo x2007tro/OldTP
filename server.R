@@ -314,10 +314,10 @@ server <- function(input, output, session) {
   #
   # Close session
   #
-  session$onSessionEnded(function() {
-    TSCloseTradingSession(ts_static)
-    print('The session has ended')
-  })
+  # session$onSessionEnded(function() {
+  #   TSCloseTradingSession(ts_static)
+  #   print('The session has ended')
+  # })
   
   #
   # Handl configuration

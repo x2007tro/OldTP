@@ -1,6 +1,5 @@
 lib <- c("ggplot2", "tidyr", "readxl")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-source("par.R")
 
 #
 # Load trading class depending on OS
@@ -24,6 +23,9 @@ ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
 #
 # Load portfolio status function
 #
+setwd(shiny.dir)
+source("par.R")
+
 setwd(cls.rpo.dir)
 source("IB_TWS_TradingSession.R")
 source("FinancialSecurityHistoricalData.R")

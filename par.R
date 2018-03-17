@@ -1,7 +1,7 @@
 #
 # IB Trading specific variables
 #
-platform <- "TWS"     # Options: TWS, IBG
+platform <- "IBG"     # Options: TWS, IBG
 acct <- "Paper"    # Options: Live, Paper
 active_trade_ids <- c()
 

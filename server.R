@@ -1,6 +1,5 @@
 lib <- c("shiny","DT","ggplot2")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-source("utility.R")
 
 #
 # Portfolio refresh time

@@ -1,6 +1,5 @@
 lib <- c("shiny","shinythemes","DT")
 lapply(lib, function(x){library(x, character.only = TRUE)})
-source("par.R")
 
 #
 # UI Layout (Trader Portal)
@@ -255,7 +254,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
              tabsetPanel(position = "below",
                          tabPanel("Past Trades",
                            fluidRow(
-                             column(7,
+                             column(8,
                                     fluidRow(
                                       DT::dataTableOutput("past_trades")
                                     )
@@ -264,7 +263,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                          ),
                          tabPanel("Past Messages",
                            fluidRow(
-                             column(4,
+                             column(8,
                                     fluidRow(
                                       DT::dataTableOutput("past_messages")     
                                     )
@@ -281,7 +280,6 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                       
                                       # Equity curve
                                       tabPanel("Account Snapshot",
-                                               tags$div(dataTableOutput("account_snapshot")),
                                                tags$div(dataTableOutput("account_snapshot"))
                                       ),
                                       # End

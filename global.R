@@ -2,6 +2,22 @@ lib <- c("ggplot2", "tidyr", "readxl")
 lapply(lib, function(x){library(x, character.only = TRUE)})
 
 #
+# IB Trading specific variables
+#
+platform <- "IBG"     # Options: TWS, IBG
+acct <- "Paper"    # Options: Live, Paper
+active_trade_ids <- c()
+
+#
+# Common parameters for server and ui
+#
+blotter_field_default_width <- "90px"
+max_blotter_size <- 5
+max_message_count <- 3
+econ_indi_panel_default_width <- 12
+econ_indi_tab_names <- c("gei_dt", "lei_dt", "coi_dt", "lai_dt")
+
+#
 # Load trading class depending on OS
 #
 if(R.Version()$os == "linux-gnu"){
@@ -16,20 +32,14 @@ if(R.Version()$os == "linux-gnu"){
   shiny.dir <- paste0(onedrive.dir, "Development/Shiny/ShiyTraderPortal/")
   watchlist.dir <- paste0(onedrive.dir, "Investment/Research/Economic Indicators/")
   ei.fn <- paste0(shiny.dir, "EconomicIndicatorsDescription.xlsx")
-  
 }
-ws.fn <- paste0(watchlist.dir, "Watchlist.xlsx")
 
 #
 # Load portfolio status function
 #
-setwd(shiny.dir)
-source("par.R")
-
-setwd(cls.rpo.dir)
-source("IB_TWS_TradingSession.R")
-source("FinancialSecurityHistoricalData.R")
-source("EconomicIndicators.R")
+source(paste0(cls.rpo.dir,"IB_TWS_TradingSession.R"))
+source(paste0(cls.rpo.dir,"FinancialSecurityHistoricalData.R"))
+source(paste0(cls.rpo.dir,"EconomicIndicators.R"))
 
 #
 # Buy/Sell trading session
@@ -39,11 +49,6 @@ ts_static <- TradingSession(22, platform, acct)
 ##
 # Utility functions for shiny trading portal
 ##
-
-#
-# Set shiny directory
-#
-setwd(shiny.dir)
 
 #
 # Get portfolio data
@@ -74,7 +79,7 @@ UtilGetPortfolio <- function(){
                                SecurityType = "CASH",
                                Position = round(us_cash,2),
                                Cost = 0,
-                               MkrPrc =  round(us_cash * forex,2),
+                               MktPrc =  round(us_cash * forex,2),
                                UnrealizedPNL = 0,
                                UnrealizedPNLPrc = "0.00%",
                                stringsAsFactors = FALSE)
@@ -84,7 +89,7 @@ UtilGetPortfolio <- function(){
                                SecurityType = "CASH",
                                Position = round(ca_cash,2),
                                Cost = 0,
-                               MkrPrc = round(ca_cash * 1,2),
+                               MktPrc = round(ca_cash * 1,2),
                                UnrealizedPNL = 0,
                                UnrealizedPNLPrc = "0.00%",
                                stringsAsFactors = FALSE)
@@ -108,7 +113,7 @@ UtilGetPortfolio <- function(){
                                SecurityType = "CASH",
                                Position = round(us_cash,2),
                                Cost = 0,
-                               MkrPrc = forex,
+                               MktPrc = forex,
                                UnrealizedPNL = 0,
                                UnrealizedPNLPrc = "0.00%",
                                stringsAsFactors = FALSE)
@@ -118,7 +123,7 @@ UtilGetPortfolio <- function(){
                                SecurityType = "CASH",
                                Position = round(ca_cash,2),
                                Cost = 0,
-                               MkrPrc = 1,
+                               MktPrc = 1,
                                UnrealizedPNL = 0,
                                UnrealizedPNLPrc = "0.00%",
                                stringsAsFactors = FALSE)
@@ -148,94 +153,94 @@ UtilFindCurrentHolding <- function(ticker_with_current){
       pos <- holding[,"Position"]
     }
   }
-
+  
 }
 
 #
 # Trade equity functions
 #
 UtilTradeEquityWithIB <- function(blotter){
-	for(i in 1:nrow(blotter)){
-		tik_with_crcy <- paste0(blotter[i,"LocalTicker"], "-", blotter[i,"Currency"])
-		side <- blotter[i,"Action"]
-		trade_shares <- blotter[i,"Quantity"]
-		transmit <- blotter[i,"TradeSwitch"]
-		
-		#
-		# Check the current position
-		#
-		curr_holding <- UtilFindCurrentHolding(tik_with_crcy)
-		if(side == "Buy"){
-			expected_after_holding <- curr_holding + trade_shares
-		} else {
-			expected_after_holding <- curr_holding - trade_shares
-		}
-		
-		#
-		# Trade
-		#
-		# ts_static <<- TradingSession(22, platform, acct)
-		ts_static <<- TSSetTransmit(ts_static, transmit)     
-		ts_static <<- TSSetPrelimTradeList(ts_static, blotter)
-		ts_static <<- TSGenFnlTradeList(ts_static)
-		ts_static <<- TSExecuteAllTrades(ts_static)
-		curr_trd_id <- ts_static$ts_trade_ids[length(ts_static$ts_trade_ids)]
-		print(curr_trd_id)
-		err_msg <- ts_static$ts_last_trade_message[length(ts_static$ts_trade_ids)]
-		# TSCloseTradingSession(ts_static)
-		
-		#
-		# Run a loop to check if the trade is sucessful
-		#
-		flag <- 0
-		while(i <= 3){
-			actual_after_holding <- UtilFindCurrentHolding(tik_with_crcy)
-			ifelse(actual_after_holding == expected_after_holding, flag <- 1, flag <- 0)
-			
-			if(flag == 1){
-				break
-			} else {
-				i <- i + 1
-				Sys.sleep(1)
-			}
-		}
-	
-		#
-		# Output results
-		#
-		trade_res <- blotter
-		trade_date <- format(Sys.Date(), "%Y-%m-%d")
-		trade_time <- format(Sys.time(), "%H:%M:%S")
-		if(flag == 1){
-			trade_res$Date <- trade_date
-			trade_res$Time <- trade_time
-			trade_res$Result <- "Success"
-			trade_res$TradeID <- curr_trd_id
-			trade_res <- trade_res[,c(ncol(trade_res),1:(ncol(trade_res)-1))]
-			
-			msg <- data.frame(Date = trade_date,
-							          Time = trade_time,
-							          Msg = paste0("Trade (",curr_trd_id, ") ", tik_with_crcy, " is successfully traded (", side, ") at ",
-											               trade_date, " ", trade_time),
-							          stringsAsFactors = FALSE)
-		} else {
-		  if(curr_trd_id != -1){
-		    active_trade_ids <<- c(active_trade_ids, curr_trd_id)   # Update background active trades
-		  }
-		  trade_res$Date <- trade_date
-			trade_res$Time <- trade_time
-			trade_res$Result <- "Failed"
-			trade_res$TradeID <- curr_trd_id
-			trade_res <- trade_res[,c(ncol(trade_res),1:(ncol(trade_res)-1))]
-			
-			msg <- data.frame(Date = trade_date,
-							          Time = trade_time,
-							          Msg = paste0("Trade (",curr_trd_id, ") ", tik_with_crcy, " is not traded (", side, ") at ",
-											               trade_date, " ", trade_time),
-							          stringsAsFactors = FALSE)
-		}
-	
-	}
+  for(i in 1:nrow(blotter)){
+    tik_with_crcy <- paste0(blotter[i,"LocalTicker"], "-", blotter[i,"Currency"])
+    side <- blotter[i,"Action"]
+    trade_shares <- blotter[i,"Quantity"]
+    transmit <- blotter[i,"TradeSwitch"]
+    
+    #
+    # Check the current position
+    #
+    curr_holding <- UtilFindCurrentHolding(tik_with_crcy)
+    if(side == "Buy"){
+      expected_after_holding <- curr_holding + trade_shares
+    } else {
+      expected_after_holding <- curr_holding - trade_shares
+    }
+    
+    #
+    # Trade
+    #
+    # ts_static <<- TradingSession(22, platform, acct)
+    ts_static <<- TSSetTransmit(ts_static, transmit)     
+    ts_static <<- TSSetPrelimTradeList(ts_static, blotter)
+    ts_static <<- TSGenFnlTradeList(ts_static)
+    ts_static <<- TSExecuteAllTrades(ts_static)
+    curr_trd_id <- ts_static$ts_trade_ids[length(ts_static$ts_trade_ids)]
+    print(curr_trd_id)
+    err_msg <- ts_static$ts_last_trade_message[length(ts_static$ts_trade_ids)]
+    # TSCloseTradingSession(ts_static)
+    
+    #
+    # Run a loop to check if the trade is sucessful
+    #
+    flag <- 0
+    while(i <= 3){
+      actual_after_holding <- UtilFindCurrentHolding(tik_with_crcy)
+      ifelse(actual_after_holding == expected_after_holding, flag <- 1, flag <- 0)
+      
+      if(flag == 1){
+        break
+      } else {
+        i <- i + 1
+        Sys.sleep(1)
+      }
+    }
+    
+    #
+    # Output results
+    #
+    trade_res <- blotter
+    trade_date <- format(Sys.Date(), "%Y-%m-%d")
+    trade_time <- format(Sys.time(), "%H:%M:%S")
+    if(flag == 1){
+      trade_res$Date <- trade_date
+      trade_res$Time <- trade_time
+      trade_res$Result <- "Success"
+      trade_res$TradeID <- curr_trd_id
+      trade_res <- trade_res[,c(ncol(trade_res),1:(ncol(trade_res)-1))]
+      
+      msg <- data.frame(Date = trade_date,
+                        Time = trade_time,
+                        Msg = paste0("Trade (",curr_trd_id, ") ", tik_with_crcy, " is successfully traded (", side, ") at ",
+                                     trade_date, " ", trade_time),
+                        stringsAsFactors = FALSE)
+    } else {
+      if(curr_trd_id != -1){
+        active_trade_ids <<- c(active_trade_ids, curr_trd_id)   # Update background active trades
+      }
+      trade_res$Date <- trade_date
+      trade_res$Time <- trade_time
+      trade_res$Result <- "Failed"
+      trade_res$TradeID <- curr_trd_id
+      trade_res <- trade_res[,c(ncol(trade_res),1:(ncol(trade_res)-1))]
+      
+      msg <- data.frame(Date = trade_date,
+                        Time = trade_time,
+                        Msg = paste0("Trade (",curr_trd_id, ") ", tik_with_crcy, " is not traded (", side, ") at ",
+                                     trade_date, " ", trade_time),
+                        stringsAsFactors = FALSE)
+    }
+    
+  }
   return(list(trade_rec = trade_res, msg_rec = msg))
 }
 
@@ -325,6 +330,7 @@ UtilGetMarketReturn <- function(){
   #
   start.date <- as.Date("2013-01-01") 
   end.date <- Sys.Date()
+  ws.fn <- paste0(watchlist.dir,"Watchlist.xlsx")
   watchlist <- read_excel(ws.fn, sheet="Watchlist")
   watchlist <- na.omit(watchlist)
   ei.etf.keys <- paste("$", watchlist$LocalTicker, sep="")
@@ -434,14 +440,14 @@ UtilPlotMarketReturn <- function(master_plot_data, market, period){
     #scale_x_date(date_breaks = "1 day", labels = YearMonthDay) +
     ggtitle(paste0("Cumulative Return for ", market, " Market")) +
     labs(caption = paste0("Plot produced on ", Sys.time()))
-    theme(rect = element_rect(fill = "#C0C0C0"),
-          panel.background = element_rect(fill = "#C0C0C0"),
-          legend.key = element_rect(fill = "#C0C0C0"),
-          legend.position = "bottom",
-          text = element_text(color = "#000000"),
-          axis.text = element_text(color = "#000000"),
-          axis.ticks = element_line(color = "#000000"),
-          axis.text.x = element_text(color = "#000000", angle = 45))
+  theme(rect = element_rect(fill = "#C0C0C0"),
+        panel.background = element_rect(fill = "#C0C0C0"),
+        legend.key = element_rect(fill = "#C0C0C0"),
+        legend.position = "bottom",
+        text = element_text(color = "#000000"),
+        axis.text = element_text(color = "#000000"),
+        axis.ticks = element_line(color = "#000000"),
+        axis.text.x = element_text(color = "#000000", angle = 45))
   
   return(my_plot)
 }

@@ -314,8 +314,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                                )
                                       )
                                       # End
-                                      
-                 )
+                 ))
                )
              )
     ),

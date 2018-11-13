@@ -1,5 +1,5 @@
-# TraderPortal
-Trade portal shiny app
+# OldTP
+Interactive Broker Trade System
 
 Packages required for this project to run:
 
